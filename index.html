@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>AJAX CMS</title>
+		
+		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+	</head>
+	
+	<body>
+		<header>
+			<h2>AJAX CMS</h2>
+			<ul id="menu"></ul>
+		</header>
+		
+		<main>
+		</main>
+		
+		<footer>
+		</footer>
+	</body>
+
+	<script>
+		var pages = [];
+		var count = 0; // Keep track of recursive asyncronous directory list.
+		
+		// Parse apache directory listing data... add to pages
+		function parsedir(url) {
+			count++;
+			$.get( url, function( data ) {
+				var f;
+				var rows = $(data).find('tr');
+				for (i = 3; i < rows.length - 1; i++) {
+					f = $(rows[i]).find('td a')[0].innerHTML
+					pages.push(url+'/'+f);
+					// Call directory recursively.
+					if (/\/$/.test(f)) {
+						console.log(url);
+						console.log(f);
+						parsedir(url+'/'+f);
+					}
+				}
+			}).then(function(){
+				console.log(count);
+				count--;
+				// Only call when the full directory list is parsed.
+				if (count == 0) {
+					pages.sort();
+					makemenu();
+				}
+			});
+		}
+		
+		// Put the pages in the menu
+	    function makemenu() {
+		    $.each(pages, function(index,file){
+		    	var filename = file.replace(/\.\/pages\//,'').replace(/\d+\-/,'').replace(/\.html$/,'');
+				$('#menu').append('<li>'+filename+'</li>');
+			});
+	    }
+
+		// Get the pages
+		parsedir('./pages');
+		
+		
+		
+	</script>
+</html>
