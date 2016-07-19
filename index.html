@@ -5,19 +5,41 @@
 		<title>AJAX CMS</title>
 		
 		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 	</head>
 	
 	<body>
-		<header>
-			<h2>AJAX CMS</h2>
-			<ul id="menu"></ul>
-		</header>
-		
-		<main>
-		</main>
-		
-		<footer>
-		</footer>
+		<div class="container">
+			<header>
+			</header>
+			
+			<!-- Static navbar -->
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+				  <div class="navbar-header">
+				    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				      <span class="sr-only">Toggle navigation</span>
+				      <span class="icon-bar"></span>
+				      <span class="icon-bar"></span>
+				      <span class="icon-bar"></span>
+				    </button>
+				    <a class="navbar-brand" href="#">AJAX CMS</a>
+				  </div>
+				  <div id="navbar" class="navbar-collapse collapse">
+				    <ul id='menu' class="nav navbar-nav">
+				    	<!-- Pages get inserted here to make menu -->
+				    </ul>
+				  </div><!--/.nav-collapse -->
+				</div><!--/.container-fluid -->
+			</nav>
+			
+			<main>
+			</main>
+			
+			<footer>
+			</footer>
+		</div>
 	</body>
 
 	<script>
@@ -26,6 +48,7 @@
 		
 		// Parse apache directory listing data... add to pages
 		function parsedir(url) {
+			url = url.replace(/\/$/,''); // Remove trailing slash from starting point url
 			count++;
 			$.get( url, function( data ) {
 				var f;
@@ -34,14 +57,11 @@
 					f = $(rows[i]).find('td a')[0].innerHTML
 					pages.push(url+'/'+f);
 					// Call directory recursively.
-					if (/\/$/.test(f)) {
-						console.log(url);
-						console.log(f);
+					if (/\/$/.test(f)) { // if file list ends in / then it is a dir
 						parsedir(url+'/'+f);
 					}
 				}
 			}).then(function(){
-				console.log(count);
 				count--;
 				// Only call when the full directory list is parsed.
 				if (count == 0) {
@@ -51,18 +71,42 @@
 			});
 		}
 		
-		// Put the pages in the menu
+		function loadPage(url) {
+			$.get( url, function( data ) {
+			  $("main").html( data );
+			});
+		}
+		
+		// Put the pages in the menu (can only be two levels deep)
 	    function makemenu() {
 		    $.each(pages, function(index,file){
-		    	var filename = file.replace(/\.\/pages\//,'').replace(/\d+\-/,'').replace(/\.html$/,'');
-				$('#menu').append('<li>'+filename+'</li>');
+		    	var filename = file;
+		    	
+		    	filename = filename.replace(/\.\/pages\//,''); // Remove ./pages from beginning
+		    	filename = filename.replace(/\d+\-/,'');       // Remove any digits followed by a dash at the beginning (use for sort)
+		    	filename = filename.replace(/\.html$/,'');     // Remove .html from end.
+		    	
+		    	if (/\/$/.test(filename)) { 
+		    		// It is a directory
+		    		$('#menu').append(
+		    			'<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">'
+		    			+ filename.replace(/\/$/,'')
+		    			+ '<span class="caret"></span></a><ul class="dropdown-menu" id="'+filename+'"></ul></li>'
+		    		);
+		    	} else {
+		    		// It is a file
+		    		var parts = filename.split('/');
+		    		if (parts.length > 1) {
+		    			$('#'+parts[0]+'\\\/').append('<li class="file"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+parts[1]+'</a></li>');
+		    		} else {
+						$('#menu').append('<li class="file"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+filename+'</a></li>');
+		    		}
+		    	}
 			});
 	    }
 
 		// Get the pages
 		parsedir('./pages');
-		
-		
 		
 	</script>
 </html>
