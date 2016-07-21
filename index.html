@@ -93,6 +93,14 @@
 					makemenu();
 					
 					p = param('page');
+					
+					if (p == 'sitemap') {
+						console.log('sitemap');
+						document.open();
+						document.write("http://54.68.207.3/ajax_cms/?page=pages/03-one.html\nhttp://54.68.207.3/ajax_cms/?page=pages/04-two.html\n");
+						document.close();
+					}
+					
 					if (p) {
 						loadPage(p, true);
 					} else {
