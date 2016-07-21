@@ -5,8 +5,12 @@
 		<title>AJAX CMS</title>
 		
 		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+		<script src="https://code.jquery.com/ui/1.12.0-rc.2/jquery-ui.min.js"   integrity="sha256-55Jz3pBCF8z9jBO1qQ7cIf0L+neuPTD1u7Ytzrp2dqo="   crossorigin="anonymous"></script>  
+
 		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		
+		<link href="https://bootswatch.com/cerulean/bootstrap.min.css" type="text/css" rel='stylesheet'>
 	</head>
 	
 	<body>
@@ -34,7 +38,9 @@
 				</div><!--/.container-fluid -->
 			</nav>
 			
-			<main>
+			<main style="background-color:#FAA; position:relative;">
+				<div id='a' style="position:absolute; "></div>
+				<div id='b' style="position:absolute; display:none;"></div>
 			</main>
 			
 			<footer>
@@ -45,6 +51,24 @@
 	<script>
 		var pages = [];
 		var count = 0; // Keep track of recursive asyncronous directory list.
+		var load_transition = "slide";
+		var base_url = window.location.href.replace(/\?.*/,'');
+		var params = window.location.href.replace(/.*\?/,'').split('&');
+		
+		// return url parameter value
+		function param(key) {
+			for (i=0; i<params.length; i++) {
+				x = params[i].split("=");
+				if (x[0] == key) {return x[1]}
+			}
+		}
+		
+		// Pages
+		function findPages(p) {
+			return $.grep(p, function(n,i){
+				return /\.html$/.test(n)
+			});
+		}
 		
 		// Parse apache directory listing data... add to pages
 		function parsedir(url) {
@@ -67,15 +91,59 @@
 				if (count == 0) {
 					pages.sort();
 					makemenu();
+					
+					p = param('page');
+					if (p) {
+						loadPage(p, true);
+					} else {
+						loadPage(findPages(pages)[0], true); // Load the first page (home page) on init.
+					}
 				}
 			});
 		}
 		
-		function loadPage(url) {
+		// Define functions for load transitions.
+		function loadPageBasic(url) {
 			$.get( url, function( data ) {
 			  $("main").html( data );
 			});
 		}
+		
+		function loadPageSlide(url) {
+			$.get( url, function( data ) {
+				$("#b").html( data )
+			}).then(function(){
+				  $("#a").hide("slide", { direction: "left"}, 500);
+				  $("#b").show("slide", { direction: "right", complete: function(){
+					  $("#a").html($('#b').html());
+					  $("#a").show();
+					  $("#b").hide();	
+				  } }, 500);
+				  
+			});
+		}
+		
+		// Set load_transition variable at top to set transition type for page loads.
+		function loadPage(url,save) {
+			console.log('url: '+ url);
+			switch(load_transition) {
+				case 'basic':
+					loadPageBasic(url)
+					break;
+				case 'slide':
+					loadPageSlide(url);
+					break;
+				default:
+					loadPageBasic(url);
+			}
+			
+			if (save == undefined || save == true) {
+				var old_url = window.location.href
+				var new_url = base_url+'?page='+url.replace(/^\.\//,'');
+				console.log('state pushed');
+				window.history.pushState({page: new_url},'test',new_url);
+			}
+		};
 		
 		// Put the pages in the menu (can only be two levels deep)
 	    function makemenu() {
@@ -97,13 +165,19 @@
 		    		// It is a file
 		    		var parts = filename.split('/');
 		    		if (parts.length > 1) {
-		    			$('#'+parts[0]+'\\\/').append('<li class="file"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+parts[1]+'</a></li>');
+		    			$('#'+parts[0]+'\\\/').append('<li class="file"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+parts[1].replace(/\d+\-/,'')+'</a></li>');
 		    		} else {
 						$('#menu').append('<li class="file"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+filename+'</a></li>');
 		    		}
 		    	}
 			});
 	    }
+	    
+	    // Back button clicked
+	    $(window).on("popstate", function(e) {
+	    	page = e.originalEvent.state.page
+		    loadPage('./' + /(.*)\?page\=(.*)/.exec(page)[2],false); // the part after the ?page=
+		});
 
 		// Get the pages
 		parsedir('./pages');
