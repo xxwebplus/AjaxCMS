@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 		<meta charset="UTF-8">
 		<title>AJAX CMS</title>
-		
+		<!-- Jquery -->
 		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 		<script src="https://code.jquery.com/ui/1.12.0-rc.2/jquery-ui.min.js"   integrity="sha256-55Jz3pBCF8z9jBO1qQ7cIf0L+neuPTD1u7Ytzrp2dqo="   crossorigin="anonymous"></script>  
-
+		<!-- Bootstrap -->
 		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-		
 		<link href="https://bootswatch.com/cerulean/bootstrap.min.css" type="text/css" rel='stylesheet'>
+		<!-- Markdown parser -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 	</head>
 	
 	<body>
@@ -38,9 +40,10 @@
 				</div><!--/.container-fluid -->
 			</nav>
 			
-			<main style="background-color:#FAA; position:relative;">
-				<div id='a' style="position:absolute; "></div>
-				<div id='b' style="position:absolute; display:none;"></div>
+			<main style="background-color:#FAA; position:relative; width:100%;">
+				<!-- Content gets inserted here, a and b are for making page style transitions. -->
+				<div id='a' style="position:absolute; width:100%;"></div>
+				<div id='b' style="position:absolute; width:100%; display:none;"></div>
 			</main>
 			
 			<footer>
@@ -49,9 +52,20 @@
 	</body>
 
 	<script>
-		var pages = [];
-		var count = 0; // Keep track of recursive asyncronous directory list.
+	    /////////////////////////////////  CONFIGURATION   ///////////////////////////////
+		
 		var load_transition = "slide";
+		
+		$.ajaxSetup({ cache: false });
+		
+	    //////////////////////////////////////////////////////////////////////////////////
+		
+		var menus = [];
+		var pages = [];
+		var blogs = [];
+		var images = [];
+		
+		var count = 0; // Keep track of recursive asyncronous directory list.
 		var base_url = window.location.href.replace(/\?.*/,'');
 		var params = window.location.href.replace(/.*\?/,'').split('&');
 		
@@ -63,15 +77,48 @@
 			}
 		}
 		
-		// Pages
+		// Pages return just the html files (not directories)
 		function findPages(p) {
 			return $.grep(p, function(n,i){
-				return /\.html$/.test(n)
+				return /[\.html|\.md]$/.test(n)
+			});
+		}
+		
+		// Parse apache directory listing data... add to menus
+		function load_menus(url) {
+			url = url.replace(/\/$/,''); // Remove trailing slash from starting point url
+			count++;
+			$.get( url, function( data ) {
+				var f;
+				var rows = $(data).find('tr');
+				for (i = 3; i < rows.length - 1; i++) {
+					f = $(rows[i]).find('td a')[0].innerHTML
+					menus.push(url+'/'+f);
+					// Call directory recursively.
+					if (/\/$/.test(f)) { // if file list ends in / then it is a dir
+						load_menus(url+'/'+f);
+					}
+				}
+			}).then(function(){
+				count--;
+				if (count == 0) {
+					// Stuff to run after menu list is loaded.
+					menus.sort();
+					makemenu();
+					
+					p = param('page');
+					
+					if (p) {
+						loadPage(p, true);
+					} else {
+						loadPage(findPages(menus)[0], true); // Load the first page (home page) on init.
+					}
+				}
 			});
 		}
 		
 		// Parse apache directory listing data... add to pages
-		function parsedir(url) {
+		function load_pages(url) {
 			url = url.replace(/\/$/,''); // Remove trailing slash from starting point url
 			count++;
 			$.get( url, function( data ) {
@@ -82,43 +129,44 @@
 					pages.push(url+'/'+f);
 					// Call directory recursively.
 					if (/\/$/.test(f)) { // if file list ends in / then it is a dir
-						parsedir(url+'/'+f);
+						load_menus(url+'/'+f);
 					}
 				}
 			}).then(function(){
 				count--;
-				// Only call when the full directory list is parsed.
 				if (count == 0) {
-					pages.sort();
-					makemenu();
-					
-					p = param('page');
-					
-					if (p == 'sitemap') {
-						console.log('sitemap');
-						document.open();
-						document.write("http://54.68.207.3/ajax_cms/?page=pages/03-one.html\nhttp://54.68.207.3/ajax_cms/?page=pages/04-two.html\n");
-						document.close();
-					}
-					
-					if (p) {
-						loadPage(p, true);
-					} else {
-						loadPage(findPages(pages)[0], true); // Load the first page (home page) on init.
-					}
+					// Stuff to run after page list is loaded.	
 				}
 			});
+		}
+		
+		// Do shortcut replacement in page html content.  (links and stuff)
+		function process_page(data,url) {
+			var d; 
+			
+			// Convert stuff in {{ }} to page transition (use for internal links) example: {{page/test.html}}
+			d = data.replace(/\{\{.*\}\}/gi, function myFunction(x){return "<a onclick=\"loadPage(\'" + x.replace(/[{{|}}]/g,'') + "\')\">test</a>"});
+			
+			// Filter content through markdown if the file extension is .md
+			if (/\.md/.test(url)){ 
+				d = marked(d); 
+				
+			}
+			
+			return d
 		}
 		
 		// Define functions for load transitions.
 		function loadPageBasic(url) {
 			$.get( url, function( data ) {
+			  data = process_page( data,url );
 			  $("main").html( data );
 			});
 		}
 		
 		function loadPageSlide(url) {
 			$.get( url, function( data ) {
+				data = process_page( data,url )
 				$("#b").html( data )
 			}).then(function(){
 				  $("#a").hide("slide", { direction: "left"}, 500);
@@ -155,12 +203,13 @@
 		
 		// Put the pages in the menu (can only be two levels deep)
 	    function makemenu() {
-		    $.each(pages, function(index,file){
+		    $.each(menus, function(index,file){
 		    	var filename = file;
 		    	
-		    	filename = filename.replace(/\.\/pages\//,''); // Remove ./pages from beginning
+		    	filename = filename.replace(/\.\/menus\//,''); // Remove ./pages from beginning
 		    	filename = filename.replace(/\d+\-/,'');       // Remove any digits followed by a dash at the beginning (use for sort)
 		    	filename = filename.replace(/\.html$/,'');     // Remove .html from end.
+		    	filename = filename.replace(/\.md$/,'');  
 		    	
 		    	if (/\/$/.test(filename)) { 
 		    		// It is a directory
@@ -187,8 +236,9 @@
 		    loadPage('./' + /(.*)\?page\=(.*)/.exec(page)[2],false); // the part after the ?page=
 		});
 
-		// Get the pages
-		parsedir('./pages');
+		// Get the directory listings.
+		load_menus('./menus');
+		load_pages('./pages');
 		
 	</script>
 </html>
