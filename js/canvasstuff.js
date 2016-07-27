@@ -186,6 +186,16 @@ function rand(n) {
 }
 
 ////////////////////////////////////////////////////////////////////
+function cdFade(data,v) {
+	var len = data.data.length
+	for (i=0; i < len; i = i + 4) {
+		data.data[i] += v;
+		data.data[i+1] += v;
+		data.data[i+2] += v;
+	}
+}
+
+////////////////////////////////////////////////////////////////////
 function getPixel(data,x,y) {
   var idx = (x + y * canvas.width) * 4;
   var r = data.data[idx + 0];

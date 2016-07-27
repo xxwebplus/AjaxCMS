@@ -59,8 +59,14 @@ function load_menus(url) {
 			menus.sort();
 			makemenu();
 			
-			p = param('page');
+			// Highlight clicked menu
+			$('#menu li').click(function(){
+				$('#menu li').removeClass('active');
+				$(this).addClass('active');
+			});
 			
+			// Load the page in the params if specified, first menu page otherwise.
+			p = param('page');
 			if (p) {
 				loadPage(p, true);
 			} else {
