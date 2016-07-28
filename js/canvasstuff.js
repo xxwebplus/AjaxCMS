@@ -1,3 +1,11 @@
+/* Update Global Variables with current mouse position. */
+var cursorX;
+var cursorY;
+document.onmousemove = function(e){
+    cursorX = e.pageX;
+    cursorY = e.pageY;
+}
+
 /**
 * Converts an HSL color value to RGB. Conversion formula
 * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
@@ -212,6 +220,37 @@ function setPixel(data,x,y,r,g,b,a) {
   data.data[idx + 1] = g; // Green channel
   data.data[idx + 2] = b; // Blue channel
   data.data[idx + 3] = a; // Alpha channel
+}
+
+////////////////////////////////////////////////////////////////////
+function arrayLine(cd, x1, y1, x2, y2, r, g, b, a, width) {
+  var distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  var xd = (x2 - x1) / distance;
+  var yd = (y2 - y1) / distance;
+  var normal = vectorNormal(Victor(xd, yd));
+  for (w = -width / 2 | 0; w < width / 2 | 0; w++) {
+    for (i = 0; i < distance; i++) {
+      setPixel(cd, (x1 + xd * i) + (normal.x * w) | 0, (y1 + yd * i) + (normal.y * w) | 0, r, g, b, a);
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////
+function spray(cd,x,y,hsl,num){
+	for (ii = 0; ii < num; ii++) {
+          var rr = rand(360);
+          var xr = rand(2);
+          var yr = rand(15);
+          var xx = (Math.cos(Math.radians(rr)) * xr);
+          var yy = (Math.sin(Math.radians(rr)) * yr);
+
+          var rgb = hslToRgb(hsl[0] + (yr / 70), hsl[1], hsl[2]);
+          var r = rgb[0];
+          var g = rgb[1];
+          var b = rgb[2];
+          
+          setPixel(cd, (x + xx) | 0, (y + yy) | 0, r, g, b, 255);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////

@@ -18,6 +18,8 @@
 		<script src="js/canvasstuff.js"></script>
 		<script src="js/ribbons-anim.js"></script>
 		<!-- CMS Javascript -->
+		<script src="js/jquery-mobile-swipe.js"></script>
+		<!-- CMS Javascript -->
 		<script src="js/cms.js"></script>
 		
 		
@@ -30,10 +32,21 @@
 			  background-color:#FFF;
 			}
 			
+			nav.navbar {
+				margin-bottom:0px;
+			}
+			
 			.container {
 				background-color:rgba(200,200,255,0.7);
 				padding:0px;
-				border-radius:4px;
+				border-radius:4px 4px 0px 0px;
+				color:black;
+			}
+			
+			#a, #b {
+				background-color:rgba(200,200,255,0.7);
+				padding:0px;
+				border-radius:0px 0px 8px 8px;
 				color:black;
 			}
 			
@@ -44,6 +57,28 @@
 			#a, #b {
 				position:absolute; 
 				width:100%;
+			}
+			
+			img.thumb {
+				width:20px;
+			}
+			img.icon {
+				width:70px;
+			}
+			img.small {
+				width:300px;
+			}
+			img.medium {
+				width:600px;
+			}
+			img.large {
+				width:900px;
+			}
+			img.left {
+				float:left;
+			}
+			img.right {
+				float:right;
 			}
 		</style>
 	</head>

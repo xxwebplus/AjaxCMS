@@ -5,6 +5,7 @@ function node(x, y, vx, vy, h, s, l, a) {
   this.hsl = [h, s, l];
 
   this.frame = function(cd) {
+    
     // Number of iterations to draw per frame
     for (i = 0; i < velocity_per_frame; i++) {
       var rgb = hslToRgb(this.hsl[0], this.hsl[1], this.hsl[2]);
@@ -12,34 +13,39 @@ function node(x, y, vx, vy, h, s, l, a) {
       var g = rgb[1];
       var b = rgb[2];
       this.hsl[0] += 0.001;
+      
       // Rotate the velocity using perlin noise.
-      this.velocity.rotateDeg(perlin.get1d(frame / 100 + x + y) * 10);
-      // Step through each pixel of node velocity
+      this.velocity.rotateDeg(perlin.get1d(frame / 600 + x + y) * 10); // Curliness 
+      
+      // Step through each pixel of node velocity (we are drawing one pixel at a time)
       for (l = 0; l < this.velocity.length(); l++) {
         var v1 = this.velocity.clone();
-        v1.divide(Victor(this.velocity.length(), this.velocity.length()));
+        v1.divide(Victor(this.velocity.length(), this.velocity.length())); // the length of the section we are drawing for this frame.
         var offsetX = v1.x;
         var offsetY = v1.y;
+       
         // Apply Movement
         this.x += offsetX;
         this.y += offsetY;
-
+        
+        // Move toward mouse cursor
+        // if (cursorX < window.innerWidth - 5 && cursorX > 5 && cursorY < window.innerHeight - 5 && cursorY > 5) {
+	       // var mouseV = new Victor(this.x - cursorX, this.y - cursorY);
+	       // var mouseVL = mouseV.length();
+	       // var gravity;
+	       // if (mouseVL > 0) {gravity = 10000 / (Math.pow(mouseVL,1.7))} else {gravity = 0}
+	       // var vectorN = vectorNormal(mouseV);
+	       // this.x += vectorN.x * gravity;
+	       // this.y += vectorN.y * gravity;
+        // }
+        
         // Draw Node as Pixel
         setPixel(cd, this.x | 0, this.y | 0, r, g, b, a);
+       
         // Draw Spray around pixel
-        for (ii = 0; ii < 20; ii++) {
-          var rr = rand(360);
-          var xr = rand(2);
-          var yr = rand(15);
-          var xx = (Math.cos(Math.radians(rr)) * xr);
-          var yy = (Math.sin(Math.radians(rr)) * yr);
+        spray(cd, this.x, this.y, this.hsl, 20);
+        // setPixel(cd, cursorX, cursorY, 0,0,0,255);
 
-          var rgb = hslToRgb(this.hsl[0] + (yr / 70), this.hsl[1], this.hsl[2]);
-          var r = rgb[0];
-          var g = rgb[1];
-          var b = rgb[2];
-          setPixel(cd, (this.x + xx) | 0, (this.y + yy) | 0, r, g, b, a);
-        }
         // Detect collision with outside border and invert velocity.
         if (this.x > page_width) {
           this.x = page_width;
@@ -61,6 +67,7 @@ function node(x, y, vx, vy, h, s, l, a) {
     }
   }
 }
+
 
 function drawFrame(ctx, frame) {
 	// Draw Stuff on The Canvas
@@ -93,7 +100,7 @@ window.onload = function() {
 
   // Create Animation Nodes
   for (i = 0; i < 10; i++) {
-    nodes.push(new node(rand(page_width), rand(page_height), rand(10) - 5, rand(10) - 5, rand(255) / 255, 1, 0.5, 255));
+    nodes.push(new node(rand(page_width), rand(page_height), rand(10) - 5, rand(10) - 5, rand(360), 1, 0.5, 255));
   }
   
   // Animation Loop
