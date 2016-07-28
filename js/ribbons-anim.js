@@ -43,7 +43,7 @@ function node(x, y, vx, vy, h, s, l, a) {
         setPixel(cd, this.x | 0, this.y | 0, r, g, b, a);
        
         // Draw Spray around pixel
-        spray(cd, this.x, this.y, this.hsl, 20);
+        spray(cd, this.x, this.y, this.hsl, 30);
         // setPixel(cd, cursorX, cursorY, 0,0,0,255);
 
         // Detect collision with outside border and invert velocity.
@@ -76,7 +76,8 @@ function drawFrame(ctx, frame) {
 	}
 	
 	// Fade the canvas
-	if (frame % 10 == 1){cdFade(cd,1)}
+	if (frame % 30 == 0) {cdFade(cd,1);}
+	cdDiffuse(cd,100);
 	
 	// Copy The Canvas to the Screen
 	ctx.putImageData(cd, 0, 0);
