@@ -17,7 +17,7 @@ var images_count = 0;
 var base_url = window.location.href.replace(/\?.*/,'');
 var params = window.location.href.replace(/.*\?/,'').split('&');
 var current_page;
-var menu_pages;
+var just_pages;
 
 
 // Resize <main> to fit children;
@@ -35,11 +35,18 @@ function param(key) {
 }
 
 // Pages return just the html files (not directories)
-function findPages(p) {
-	return $.grep(p, function(n,i){
+function findPages() {
+	return $.grep(pages, function(n,i){
 		return /[\.html|\.md]$/.test(n);
 	});
 }
+
+function findMenus(){
+	return $.grep(pages, function(n,i){
+		return /\/menus\/.+/.test(n);
+	});
+}
+
 
 // Return Index of specified menu
 function menuIndex(m) {
@@ -50,42 +57,6 @@ function mpIndex(m) {
 }
 
 
-// Parse apache directory listing data... add to menus
-function load_menus(url) {
-	url = url.replace(/\/$/,''); // Remove trailing slash from starting point url
-	menu_count++;
-	$.get( url, function( data ) {
-		var f;
-		var rows = $(data).find('tr');
-		for (i = 3; i < rows.length - 1; i++) {
-			f = $(rows[i]).find('td a')[0].innerHTML;
-			menus.push(url+'/'+f);
-			// Call directory recursively.
-			if (/\/$/.test(f)) { // if file list ends in / then it is a dir
-				load_menus(url+'/'+f);
-			}
-		}
-	}).then(function(){
-		menu_count--;
-		if (menu_count === 0) {
-			// Stuff to run after menu list is loaded.
-			menus.sort();
-			makemenu();
-			menu_pages = findPages(menus);
-			
-			// Load the page in the params if specified, first menu page otherwise.
-			p = param('page');
-			if (p) {
-				loadPage('./'+p, true);
-				current_page = p;
-			} else {
-				current_page = findPages(menus)[0];
-				loadPage(current_page, true); // Load the first page (home page) on init.
-			}
-		}
-	});
-}
-
 // Parse apache directory listing data... add to pages
 function load_pages(url) {
 	url = url.replace(/\/$/,''); // Remove trailing slash from starting point url
@@ -94,20 +65,35 @@ function load_pages(url) {
 		var f;
 		var rows = $(data).find('tr');
 		for (i = 3; i < rows.length - 1; i++) {
-			f = $(rows[i]).find('td a')[0].innerHTML;
-			pages.push(url+'/'+f);
+			f = url + '/' + $(rows[i]).find('td a')[0].innerHTML;
+			pages.push(f);
 			// Call directory recursively.
 			if (/\/$/.test(f)) { // if file list ends in / then it is a dir
-				load_menus(url+'/'+f);
+				load_pages(f);
 			}
 		}
 	}).then(function(){
 		pages_count--;
 		if (pages_count === 0) {
-			// Stuff to run after page list is loaded.	
+			// Stuff to run after menu list is loaded.
+			menus = findMenus();
+			menus.sort();
+			makemenu();
+			just_pages = findPages();
+			
+			// Load the page in the params if specified, first menu page otherwise.
+			p = param('page');
+			if (p) {
+				loadPage('./'+p, true);
+				current_page = p;
+			} else {
+				current_page = findMenus()[0];
+				loadPage(current_page, true); // Load the first page (home page) on init.
+			}
 		}
 	});
 }
+
 
 // Parse apache directory listing data... add to images
 function load_images(url) {
@@ -145,6 +131,14 @@ function imageMatch(s) {
 	}
 }
 
+// Return the url of the first partial-match page.
+function pageMatch(s) {
+	for (i=0; i<just_pages.length; i++) {
+		var re = new RegExp(s,"gi");
+		if (re.test(just_pages[i])){return just_pages[i]} 
+	}
+}
+
 // Do shortcut replacement in page html content.  (links and stuff)
 function process_page(data,url) {
 	var d; 
@@ -157,13 +151,13 @@ function process_page(data,url) {
 
 		// Anchors
 		if (parts[0]=='a' && parts.length == 2) {
-			return "<a onclick=\"loadPage(\'" + parts[1] + "\')\">"+parts[1]+"</a>";
+			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+pageMatch(parts[1])+"</a>";
 		}
 		if (parts[0]=='a' && parts.length == 3) {
-			return "<a onclick=\"loadPage(\'" + parts[1] + "\')\">"+parts[2]+"</a>";
+			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+parts[2]+"</a>";
 		}
 		if (parts[0]=='a' && parts.length == 4) {
-			return "<a onclick=\"loadPage(\'" + parts[1] + "\')\" alt=\"" + parts[3] + "\">"+parts[2]+"</a>";
+			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\" alt=\"" + parts[3] + "\">"+parts[2]+"</a>";
 		}
 		
 		// Images
@@ -180,6 +174,43 @@ function process_page(data,url) {
 			return "<img src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[2] + "\" class=\"" + parts[3] + "\" style=\"" + parts[4] + "\">";
 		}
 		
+		// Carousel {{ carousel| image1:alt1:caption1 | image2:alt2:caption2 | image3:alt3:caption3 }}
+		if (parts[0].includes('carousel') && parts.length > 2) {
+			var idn = Math.floor(rand(9999999999));
+			var carousel_images = parts.slice(1);
+			var carousel_speed = 5000
+			if (parts[0].split(':').length == 2) {carousel_speed = parseInt(parts[0].split(':')[1])}
+			
+			// Build the repeating parts of the carousel
+			var carousel_indicators = "";
+			var slides = "";
+			for (ii=0; ii < carousel_images.length; ii++) {
+				carousel_indicators += "<li data-target=\"#carousel_"+idn+"\" data-slide-to=\""+ii+"\" class=\""+ (ii==0 ? 'active' : '') +"\"></li>";
+				
+				var image_parts = carousel_images[ii].split(':');
+				var slide_image;
+				var slide_caption;
+				var slide_alt;
+				(image_parts.length > 0) ? slide_image = image_parts[0] : slide_image = "";
+				(image_parts.length > 1) ? slide_alt = image_parts[1] : slide_alt = "";
+				(image_parts.length > 2) ? slide_caption = image_parts[2] : slide_caption = "";
+				slides += 	"<div class=\"item "+ (ii==0 ? 'active' : '') +"\">" +
+							"<img src=\""+ imageMatch(slide_image) +"\" alt=\""+ slide_alt  +"\">" +
+							"<div class=\"carousel-caption\">"+slide_caption+"</div></div>";
+			}
+			
+			// Return the Carousel
+			return 	"<div id=\"carousel_"+idn+"\" class=\"carousel slide auto\" data-ride=\"carousel\">" +
+					"<ol class=\"carousel-indicators\">"+carousel_indicators+"</ol>" +
+					"<div class=\"carousel-inner\" role=\"listbox\">" + slides + "</div>" +
+					"<a class=\"left carousel-control\" href=\"#carousel_"+idn+"\" role=\"button\" data-slide=\"prev\">" +
+					"<span class=\"glyphicon glyphicon-chevron-left\" aria-hidden=\"true\"></span><span class=\"sr-only\">Previous</span></a>" +
+					"<a class=\"right carousel-control\" href=\"#carousel_"+idn+"\" role=\"button\" data-slide=\"next\">" +
+					"<span class=\"glyphicon glyphicon-chevron-right\" aria-hidden=\"true\"></span><span class=\"sr-only\">Next</span></a>" +
+					"</div><script>$(function(){ $('.carousel').carousel({interval:"+carousel_speed+"})});</script>"
+		}
+		
+		// If all else fails return nothing.
 		return ""
 	});
 	
@@ -272,9 +303,9 @@ function makemenu() {
     $.each(menus, function(index,file){
     	var filename = file;
     	
-    	filename = filename.replace(/\.\/menus\//,''); // Remove ./pages from beginning
-    	filename = filename.replace(/\d+\-/,'');       // Remove any digits followed by a dash at the beginning (use for sort)
-    	filename = filename.replace(/\.html$/,'');     // Remove .html from end.
+    	filename = filename.replace(/\.\/pages\/menus\//,'');   // Remove ./pages from beginning
+    	filename = filename.replace(/\d+\-/,'');       			// Remove any digits followed by a dash at the beginning (use for sort)
+    	filename = filename.replace(/\.html$/,'');     			// Remove .html from end.
     	filename = filename.replace(/\.md$/,'');  
     	
     	classname = fileToClass(file);
@@ -305,12 +336,17 @@ $(window).on("popstate", function(e) {
 });
 
 // Get the directory listings.
-load_menus('./menus');
 load_pages('./pages');
 load_images('./images');
 
 // When the page is loaded.
 $( document ).ready(function() {
+    // Home on Brand Click
+    $('.navbar-brand').click(function(){
+    	current_page = findMenus()[0];
+		loadPage(current_page, true);
+    });
+    
     // Setup Swipe Events
 	$("#a").on("swiperight",function(event){
 		if (mpIndex(current_page) > 0){
