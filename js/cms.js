@@ -18,6 +18,7 @@ var base_url = window.location.href.replace(/\?.*/,'');
 var params = window.location.href.replace(/.*\?/,'').split('&');
 var current_page;
 var just_pages;
+var menu_pages;
 
 
 // Resize <main> to fit children;
@@ -46,7 +47,6 @@ function findMenus(){
 		return /\/menus\/.+/.test(n);
 	});
 }
-
 
 // Return Index of specified menu
 function menuIndex(m) {
@@ -80,6 +80,7 @@ function load_pages(url) {
 			menus.sort();
 			makemenu();
 			just_pages = findPages();
+			menu_pages = $.grep(just_pages, function(n,i){return /\/menus\/.+/.test(n)});
 			
 			// Load the page in the params if specified, first menu page otherwise.
 			p = param('page');
@@ -87,7 +88,7 @@ function load_pages(url) {
 				loadPage('./'+p, true);
 				current_page = p;
 			} else {
-				current_page = findMenus()[0];
+				current_page = menu_pages[0];
 				loadPage(current_page, true); // Load the first page (home page) on init.
 			}
 		}
@@ -145,10 +146,18 @@ function process_page(data,url) {
 	var size;
 	
 	// Convert stuff in {{ }} to page transition (use for internal links) example: {{page/test.html}}
-	d = data.replace(/\{\{.*\}\}/gi, function myFunction(x){
+	
+	d = data.replace(/{{.*}}/gi, function myFunction(x){
 		var parts = x.replace(/{{/g,'').replace(/}}/g,'').split('|');
-		for (i=0; i < parts.length; i++) {parts[i] = parts[i].trim().toLowerCase()}
-
+		
+        // Blank - Skip any helpers that contain five sequential spaces.  This is so we can document the helpers format without it being replaced.  HTML merges the spaces.
+        if (/\s\s\s\s\s/.test(x)) {
+        	return x
+        }
+        
+        // Remove Blanks
+        for (i=0; i < parts.length; i++) {parts[i] = parts[i].trim().toLowerCase()}
+        
 		// Anchors
 		if (parts[0]=='a' && parts.length == 2) {
 			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+pageMatch(parts[1])+"</a>";
@@ -174,7 +183,7 @@ function process_page(data,url) {
 			return "<img src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[2] + "\" class=\"" + parts[3] + "\" style=\"" + parts[4] + "\">";
 		}
 		
-		// Carousel {{ carousel| image1:alt1:caption1 | image2:alt2:caption2 | image3:alt3:caption3 }}
+		// Carousel {{ carousel:speed | image1:alt1:caption1 | image2:alt2:caption2 | image3:alt3:caption3 }}
 		if (parts[0].includes('carousel') && parts.length > 2) {
 			var idn = Math.floor(rand(9999999999));
 			var carousel_images = parts.slice(1);
@@ -343,7 +352,7 @@ load_images('./images');
 $( document ).ready(function() {
     // Home on Brand Click
     $('.navbar-brand').click(function(){
-    	current_page = findMenus()[0];
+    	current_page = menu_pages[0];
 		loadPage(current_page, true);
     });
     
@@ -358,4 +367,8 @@ $( document ).ready(function() {
 			loadPage(menu_pages[mpIndex(current_page)+1],true);
 		}
 	});
+	
+	// Fix background glitch on mobile devices when address bar hides / unhides.
+	$('#background').height(jQuery(window).height() + 120);
+	window.onresize = function(){$('#background').height(jQuery(window).height() + 120)}; // not sure uf this works on iphone may need to use orientationchange event.
 });
