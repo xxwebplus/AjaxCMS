@@ -14,6 +14,8 @@ var images = [];
 var menu_count = 0; // Keep track of recursive asyncronous directory list.
 var pages_count = 0;
 var images_count = 0;
+var in_transition = false;
+
 var base_url = window.location.href.replace(/\?.*/,'');
 var params = window.location.href.replace(/.*\?/,'').split('&');
 var current_page;
@@ -79,7 +81,7 @@ function load_pages(url) {
 			menus = findMenus();
 			menus.sort();
 			makemenu();
-			just_pages = findPages();
+			just_pages = findPages().sort();
 			menu_pages = $.grep(just_pages, function(n,i){return /\/menus\/.+/.test(n)});
 			
 			// Load the page in the params if specified, first menu page otherwise.
@@ -226,7 +228,6 @@ function process_page(data,url) {
 	// Filter content through markdown if the file extension is .md
 	if (/\.md/.test(url)){ 
 		d = marked(d); 
-		
 	}
 	
 	return d
@@ -245,10 +246,12 @@ function loadPageSlide(url) {
 		data = process_page( data,url )
 		$("#b").html( data )
 	}).then(function(){
-		  // scaleMain('#b');
+		  in_transition = true;
+
 		  if (menuIndex(url) > menuIndex(current_page)) {
 		  	$("#a").hide("slide", { direction: "left"}, 500);
 			$("#b").show("slide", { direction: "right", complete: function(){
+			  in_transition = false;
 			  current_page = url;
 			  $("#a").html($('#b').html());
 			  $("#a").show();
@@ -257,6 +260,7 @@ function loadPageSlide(url) {
 		  } else if (menuIndex(url) < menuIndex(current_page) && menuIndex(url) != -1) {
 		  	$("#a").hide("slide", { direction: "right"}, 500);
 			$("#b").show("slide", { direction: "left", complete: function(){
+			  in_transition = false;
 			  current_page = url;
 			  $("#a").html($('#b').html());
 			  $("#a").show();
@@ -265,6 +269,7 @@ function loadPageSlide(url) {
 		  } else {
 		    $("#a").hide("fade", { }, 500);
 			$("#b").show("fade", { complete: function(){
+			  in_transition = false;
 			  current_page = url;
 			  $("#a").html($('#b').html());
 			  $("#a").show();
@@ -358,15 +363,36 @@ $( document ).ready(function() {
     
     // Setup Swipe Events
 	$("#a").on("swiperight",function(event){
-		if (mpIndex(current_page) > 0){
+		if (mpIndex(current_page) > 0  && !in_transition){
 			loadPage(menu_pages[mpIndex(current_page)-1],true);
 		}
 	});
 	$("#a").on("swipeleft",function(event){
-		if (mpIndex(current_page) < menu_pages.length){
+		if (mpIndex(current_page) < menu_pages.length && !in_transition){
 			loadPage(menu_pages[mpIndex(current_page)+1],true);
 		}
 	});
+	
+	// Detect keypress
+	$(function(){
+    	$('html').keydown(function(e){
+        
+        // left key
+        if (e.keyCode == 39 && !in_transition) {
+        	if (mpIndex(current_page) < menu_pages.length){
+				loadPage(menu_pages[mpIndex(current_page)+1],true);
+        	}
+		}
+        
+        // right key
+        if (e.keyCode == 37 && !in_transition) {
+        	if (mpIndex(current_page) > 0){
+				loadPage(menu_pages[mpIndex(current_page)-1],true);
+        	}
+		}
+    });
+    
+});
 	
 	// Fix background glitch on mobile devices when address bar hides / unhides.
 	$('#background').height(jQuery(window).height() + 120);

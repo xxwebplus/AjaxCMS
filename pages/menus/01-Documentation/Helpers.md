@@ -28,4 +28,5 @@ left, right.  These can be used in the class to specifiy basic image sizes and p
 Example: `{{carousel:5000     | image1:alt1:caption1 | image2:alt2:caption2 | image3:alt3:caption3 }}`
 
 AJAX CMS includes bootstrap, so we use bootstraps carousel by default.  You can specify as many slides as you want.  Each slide can take a number of optional parameters separated by a ':' 
-character.  Specified in order they are the alt tag and a caption.  The caption can include html like `<h1>Some text</h1>`
+character.  Specified in order they are the alt tag and a caption.  The caption can include html like `<h1>Some text</h1>`.  The 5000 in the above example is optional abd specifies the 
+speed in miliseconds between slide transitions.  So 5000 would mean 5 seconds between slides.  
