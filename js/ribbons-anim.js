@@ -40,8 +40,8 @@ function node(x, y, vx, vy, h, s, l, a) {
         // }
         
         // Draw Node as Pixel
-        setPixel(cd, this.x | 0, this.y | 0, r, g, b, a);
-       
+        setPixel(cd, this.x, this.y, r, g, b, a);
+
         // Draw Spray around pixel
         spray(cd, this.x, this.y, this.hsl, 30);
         // setPixel(cd, cursorX, cursorY, 0,0,0,255);
@@ -76,8 +76,8 @@ function drawFrame(ctx, frame) {
 	}
 	
 	// Fade the canvas
-	if (frame % 30 == 0) {cdFade(cd,1);}
-	cdDiffuse(cd,100);
+	cdFade(cd,40,5);
+	cdDiffuse(cd,150,15);
 	
 	// Copy The Canvas to the Screen
 	ctx.putImageData(cd, 0, 0);
@@ -100,7 +100,8 @@ window.onload = function() {
   cd = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   // Create Animation Nodes
-  for (i = 0; i < 10; i++) {
+  num_nodes = (page_width * page_height / 150000);
+  for (i = 0; i < num_nodes; i++) {
     nodes.push(new node(rand(page_width), rand(page_height), rand(10) - 5, rand(10) - 5, rand(360), 1, 0.5, 255));
   }
   

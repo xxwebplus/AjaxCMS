@@ -194,15 +194,16 @@ function rand(n) {
 }
 
 ////////////////////////////////////////////////////////////////////
-function cdFade(data,v) {
+function cdFade(data,v,n) {
 	var len = data.data.length
 	for (i=0; i < len; i = i + 4) {
-		data.data[i+3] -= v;
+		i += (Math.floor(rand(v)) * 4);
+		data.data[i+3] -= n;
 	}
 }
 
 ////////////////////////////////////////////////////////////////////
-function cdDiffuse(data,v) {
+function cdDiffuse(data,v,l) {
 	var len = data.data.length
 	var canvas_width = canvas.width;
 	var array_width = canvas_width * 4;
@@ -215,16 +216,15 @@ function cdDiffuse(data,v) {
 	
 	for (i=0; i < len; i += 4) {
 		
-		i += (Math.floor(rand(v)) * 4)
+		i += (Math.floor(rand(v)) * 4);
 		if (data.data[i+3] == 0) { continue; }
 		
 		r = data.data[i];
 		g = data.data[i+1];
 		b = data.data[i+2];
 		a = data.data[i+3];
-		a -= 1;
-		
-		p2 = i + ((Math.floor(rand(5)) - 2) * array_width) + ((Math.floor(rand(5)) - 2) * 4);
+
+		p2 = i + (((rand(l)|0) - (l/2|0)) * array_width) + (((rand(l)|0) - (l/2|0)) * 4);
 		
 		data.data[i] = data.data[p2];
 		data.data[i+1] = data.data[p2+1];
@@ -240,7 +240,7 @@ function cdDiffuse(data,v) {
 
 ////////////////////////////////////////////////////////////////////
 function getPixel(data,x,y) {
-  var idx = (x + y * canvas.width) * 4;
+  var idx = ((x|0) + (y|0) * data.width) * 4;
   var r = data.data[idx + 0];
   var g = data.data[idx + 1];
   var b = data.data[idx + 2];
@@ -250,7 +250,7 @@ function getPixel(data,x,y) {
 
 ////////////////////////////////////////////////////////////////////
 function setPixel(data,x,y,r,g,b,a) {
-  var idx = (x + y * canvas.width) * 4;
+  var idx = ((x|0) + (y|0) * data.width) * 4;
   data.data[idx + 0] = r; // Red channel
   data.data[idx + 1] = g; // Green channel
   data.data[idx + 2] = b; // Blue channel
