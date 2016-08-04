@@ -203,10 +203,10 @@ function cdFade(data,v,n) {
 }
 
 ////////////////////////////////////////////////////////////////////
-function cdDiffuse(data,v,l) {
+function cdDiffuse(data,v,spread) {
 	var len = data.data.length
-	var canvas_width = canvas.width;
-	var array_width = canvas_width * 4;
+	var data_width = data.width;
+	var array_width = data_width * 4;
 	
 	var r;
 	var g;
@@ -214,7 +214,7 @@ function cdDiffuse(data,v,l) {
 	var a;
 	var p2;
 	
-	for (i=0; i < len; i += 4) {
+	for (var i=0; i < len; i += 4) {
 		
 		i += (Math.floor(rand(v)) * 4);
 		if (data.data[i+3] == 0) { continue; }
@@ -224,7 +224,8 @@ function cdDiffuse(data,v,l) {
 		b = data.data[i+2];
 		a = data.data[i+3];
 
-		p2 = i + (((rand(l)|0) - (l/2|0)) * array_width) + (((rand(l)|0) - (l/2|0)) * 4);
+		p2 = i + (Math.round(rand(spread) - (spread/2)) * array_width) + (Math.round(rand(spread) - (spread/2)) * 4);
+		//p2 = i + ((Math.floor(rand(5)) - 2) * array_width) + ((Math.floor(rand(5)) - 2) * 4);
 		
 		data.data[i] = data.data[p2];
 		data.data[i+1] = data.data[p2+1];
