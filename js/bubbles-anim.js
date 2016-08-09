@@ -1,19 +1,22 @@
-function node(w,h, x,y, vx,vy, depth) {
+function node(x,y, vx,vy, size, depth) {
   this.x = x;
   this.y = y;
   this.velocity = new Victor(vx, vy);
   this.depth = depth;
+  this.size = size;
 
   this.frame = function(cd) {
   	// Apply Movement
-    this.x += this.velocity.x;
-    this.y += this.velocity.y;
+    this.x += (this.velocity.x / this.depth);
+    this.y += (this.velocity.y / this.depth);
     
     // Increase Velocity
     this.velocity.y += -0.05;
     
+    
+    
     // Draw Stuff
-    ctx.drawImage(image2, this.x,this.y, 150,150);
+    ctx.drawImage(image2, this.x|0,this.y|0, (150 / this.depth), (150 / this.depth));
   }
 }
 
@@ -22,7 +25,7 @@ function drawFrame(ctx, frame) {
 	if (play) {
 		// Make new nodes
 		if ( rand(10)|0 == 1 ) {
-			nodes.push(new node(img.width,img.height, rand(page_width),page_height, rand(4)-2,-3, rand(20)-10));
+			nodes.push(new node(rand(page_width),page_height, rand(10)-5,-9, 100,rand(50)));
 		}
 		
 		// Remove nodes outside of display
@@ -84,7 +87,7 @@ window.onload = function() {
 	img.onload = function(){
 	    ctx.drawImage(img, 100, 100,150,150);
 	    play=true;
-	    
+	   	
 	    // Make the canvas for the image
 	    canvas2 = document.createElement('canvas');
 		canvas2.width = img.width;
