@@ -84,7 +84,7 @@ function drawFrame(ctx, frame) {
 }
 
 ////////////////////////////////////////////////////////////////////
-window.onload = function() {
+startBackground = function() {
   nodes = [];
   velocity_per_frame = 1;
   frame = 0;
@@ -114,3 +114,5 @@ window.onload = function() {
   
   draw();
 }
+
+startBackground();

@@ -10,6 +10,7 @@ var menus = [];
 var pages = [];
 var blogs = [];
 var images = [];
+var themes = [];
 
 var menu_count = 0; // Keep track of recursive asyncronous directory list.
 var pages_count = 0;
@@ -77,13 +78,14 @@ function load_pages(url) {
 	}).then(function(){
 		pages_count--;
 		if (pages_count === 0) {
+			
 			// Stuff to run after menu list is loaded.
 			menus = findMenus();
 			menus.sort();
 			makemenu();
 			just_pages = findPages().sort();
 			menu_pages = $.grep(just_pages, function(n,i){return /\/menus\/.+/.test(n)});
-			
+
 			// Load the page in the params if specified, first menu page otherwise.
 			p = param('page');
 			if (p) {
@@ -123,6 +125,39 @@ function load_images(url) {
 		if (images_count === 0) {
 			// Stuff to run after page list is loaded.	
 		}
+	});
+}
+
+// Parse apache directory listing data... add to themes
+function load_themes(url) {
+	url = url.replace(/\/$/,''); // Remove trailing slash from starting point url
+	images_count++;
+	$.get( url, function( data ) {
+		var f;
+		var rows = $(data).find('tr');
+		for (i = 3; i < rows.length - 1; i++) {
+			f = $(rows[i]).find('td a')[0].innerHTML;
+			// Save only the first level of directories.
+			if (/\/$/.test(f)) { // if file list ends in / then it is a dir
+				themes.push(f.replace(/\/$/,''));
+			}
+		}
+	}).then(function(){
+		var menutext = 
+		
+			"<ul class=\"nav navbar-nav navbar-right\">" +
+				"<li class=\"dropdown\">" + 
+					"<a class=\"dropdown-toggle\" data-toggle=\"dropdown\" href=\"#\">Themes" +
+	        		"<span class=\"caret\"></span></a>" + 
+					"<ul class=\"dropdown-menu\">"
+	    
+	    for (var ii=0; ii<themes.length; ii++) {
+	    	menutext += "<li><a href=\"?theme="+themes[ii]+"\">"+themes[ii]+"</a></li>"
+	    }    		
+	    
+	    menutext += "</ul></li></ul>"
+    		
+    	$('#menu').after(menutext);
 	});
 }
 
@@ -352,6 +387,7 @@ $(window).on("popstate", function(e) {
 // Get the directory listings.
 load_pages('./pages');
 load_images('./images');
+if (typeof(default_background) != 'undefined') {load_themes('./themes');}
 
 // When the page is loaded.
 $( document ).ready(function() {

@@ -118,7 +118,7 @@ function makeRotationArray(img) {
 }
 
 ////////////////////////////////////////////////////////////////////
-window.onload = function() {
+startBackground = function() {
 	nodes = [];
 	velocity_per_frame = 1;
 	frame = 0;
@@ -141,7 +141,7 @@ window.onload = function() {
 	    ra = makeRotationArray(img);
 	    play=true;
 	}
-	img.src = 'images/bar1.png';
+	img.src = 'themes/riseup/images/bar1.png';
 	
 	// Animation Loop
 	function draw() {
@@ -152,3 +152,5 @@ window.onload = function() {
 	
 	draw();
 }
+
+startBackground();

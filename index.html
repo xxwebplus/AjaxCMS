@@ -4,25 +4,44 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 		<meta charset="UTF-8">
 		<title>AJAX CMS</title>
+		
+		<!-- Comment this out to remove the themes menu -->
+		<script>var default_background = "bubbles";</script>
+		
 		<!-- Jquery -->
 		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 		<script src="https://code.jquery.com/ui/1.12.0-rc.2/jquery-ui.min.js"   integrity="sha256-55Jz3pBCF8z9jBO1qQ7cIf0L+neuPTD1u7Ytzrp2dqo="   crossorigin="anonymous"></script>  
+		
 		<!-- Bootstrap -->
 		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-		<link href="https://bootswatch.com/cerulean/bootstrap.min.css" type="text/css" rel='stylesheet'>
+		
 		<!-- Markdown parser -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+		
 		<!-- Background Animation -->
 		<script src="js/victor.js"></script>
 		<script src="js/canvasstuff.js"></script>
 		<script src="js/stackblur.min.js"></script>
-		<script src="js/bubbles-anim.js"></script>
-		<!-- CMS Javascript -->
 		<script src="js/jquery-mobile-swipe.js"></script>
+		
 		<!-- CMS Javascript -->
 		<script src="js/cms.js"></script>
 		
+		<!--<script src="themes/bubbles/background.js"></script>-->
+		<!--<link href="themes/bubbles/theme.css" type="text/css" rel='stylesheet'>-->
+		
+		<!-- This will allow the user to set themes... remove below and uncomment above to set to fixed theme. -->
+		<script>
+			theme = param('theme');
+			if (theme) {
+				$.getScript('themes/'+theme+'/background.js');
+				$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', 'themes/'+theme+'/theme.css');
+			} else {
+				$.getScript('themes/'+default_background+'/background.js');  // Default background
+				$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', 'themes/'+default_background+'/theme.css');
+			}
+		</script>
 		
 		<style>
 			body {

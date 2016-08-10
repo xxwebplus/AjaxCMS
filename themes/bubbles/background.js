@@ -100,7 +100,7 @@ function animNum(str) {
 }
 
 ////////////////////////////////////////////////////////////////////
-window.onload = function() {
+startBackground = function() {
 	nodes = [];
 	velocity_per_frame = 1;
 	frame = 0;
@@ -139,28 +139,4 @@ window.onload = function() {
 	draw();
 }
 
-
-
-		// ctx.drawImage(img, 100, 100,150,150);
-	 //   play=true;
-	   	
-	 //   // Make the canvas for the image
-	 //   canvas2 = document.createElement('canvas');
-		// canvas2.width = img.width;
-		// canvas2.height = img.height;
-		// ctx2 = canvas2.getContext("2d");
-		// ctx2.drawImage(img, 0, 0,150,150);
-
-		// // Manipulate the image
-		// cd2 = ctx2.getImageData(0, 0, 150, 150);
-		// 	cdFade(cd2,1,100);
-		// 	for (i=0; i<10; i++){cdDiffuse(cd2,1,3)}
-		// 	//StackBlur.imageDataRGB(cd2, 0, 0, canvas2.width, canvas2.height, 15);
-		// ctx2.putImageData(cd2,0,0);
-		
-		// // Draw on screen (debug)
-		// //ctx.putImageData(cd2,600,600);
-		
-		// // Save the manipulated image as a new image.
-		// image2 = new Image();
-		// image2.src = canvas2.toDataURL();
+startBackground();
