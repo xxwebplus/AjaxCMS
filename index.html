@@ -118,6 +118,7 @@
 				background:white;
 				color:black;
 				text-align:center;
+				padding:5px;
 			}
 			footer a {color:blue;}
 			footer a:hover {color:#55F;}
@@ -157,10 +158,11 @@
 			</main>
 			
 			<footer>
+				<script>copyright = window.location.hostname.split('.').slice(-2.0).join('.'); (copyright == 'softwyre.com') ? name='brandon.hoult@softwyre.com' : name='bhoult@gmail.com'</script>
 				<div>&#9400; 
-					<a href='http://softwyre.com'>Softwyre Inc.</a> 
+					<script>document.write("<a href=\"http://"+copyright+"\">"+copyright+"</a>")</script>
 					2016 All Rights Reserved. 
-					Email: <a href="mailto: brandon.hoult@softwyre.com">brandon.hoult@softwyre.com</a> for more information. 
+					Email: <script>document.write("<a href=\"mailto:"+name+"\">"+name+"</a>")</script> for more information. 
 				</div>
 			</footer>
 		</div>
