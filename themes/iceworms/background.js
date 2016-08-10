@@ -64,8 +64,9 @@ function drawFrame(ctx, frame) {
  		
 		
 		// Clear the frame.
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		//ctx.fillRect(0,0,page_width,page_height);
+		//ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillRect(0,0,page_width,page_height);
+		
 		//ctx.drawImage(image_list[3], cursorX-75,(cursorY*0.94)-75, 150,150);
 		
 		// Draw Stuff on The Array
@@ -106,7 +107,7 @@ startBackground = function() {
 	frame = 0;
 	play=false;
 	
-	$('#background').css('background', 'linear-gradient(#BBF,#446,#2B1F19,#000');
+	$('#background').css('background', '#FFF');
 	
 	// Set up the background canvas
 	canvas = document.getElementById('background');
