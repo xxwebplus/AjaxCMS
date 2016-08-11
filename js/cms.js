@@ -41,13 +41,13 @@ function param(key) {
 // Pages return just the html files (not directories)
 function findPages() {
 	return $.grep(pages, function(n,i){
-		return /[\.html|\.md]$/.test(n);
+		return /[\.html|\.md]$/.test(n) && !/layout\.html$/.test(n);
 	});
 }
 
 function findMenus(){
 	return $.grep(pages, function(n,i){
-		return /\/menus\/.+/.test(n);
+		return /\/menus\/.+/.test(n) && !/layout\.html$/.test(n);
 	});
 }
 
@@ -80,8 +80,7 @@ function load_pages(url) {
 		if (pages_count === 0) {
 			
 			// Stuff to run after menu list is loaded.
-			menus = findMenus();
-			menus.sort();
+			menus = findMenus().sort();
 			makemenu();
 			just_pages = findPages().sort();
 			menu_pages = $.grep(just_pages, function(n,i){return /\/menus\/.+/.test(n)});
@@ -189,7 +188,7 @@ function process_page(data,url) {
 		
         // Blank - Skip any helpers that contain five sequential spaces.  This is so we can document the helpers format without it being replaced.  HTML merges the spaces.
         if (/\s\s\s\s\s/.test(x)) {
-        	return x
+        	return x.replace(/\s+/,' ')
         }
         
         // Remove Blanks
@@ -245,6 +244,11 @@ function process_page(data,url) {
 							"<div class=\"carousel-caption\">"+slide_caption+"</div></div>";
 			}
 			
+			// Wait a second then start the carousel.
+			setTimeout(function(){
+				$("#carousel_"+idn).carousel({interval: carousel_speed});	
+			},1000);
+			
 			// Return the Carousel
 			return 	"<div id=\"carousel_"+idn+"\" class=\"carousel slide auto\" data-ride=\"carousel\">" +
 					"<ol class=\"carousel-indicators\">"+carousel_indicators+"</ol>" +
@@ -253,87 +257,137 @@ function process_page(data,url) {
 					"<span class=\"glyphicon glyphicon-chevron-left\" aria-hidden=\"true\"></span><span class=\"sr-only\">Previous</span></a>" +
 					"<a class=\"right carousel-control\" href=\"#carousel_"+idn+"\" role=\"button\" data-slide=\"next\">" +
 					"<span class=\"glyphicon glyphicon-chevron-right\" aria-hidden=\"true\"></span><span class=\"sr-only\">Next</span></a>" +
-					"</div><script>$(function(){ $('.carousel').carousel({interval:"+carousel_speed+"})});</script>"
+					"</div>"
 		}
 		
-		// If all else fails return nothing.
-		return ""
+		// Inserts {{insert | page_partial }}
+		if (parts[0]=='insert' && parts.length == 2) {
+			var idn = rand(999999999)|0;
+			var page_url = pageMatch(parts[1])
+			var layout;
+			$.get( page_url, function( insert_data ) {
+				
+				var layout_url = page_url.split('/').slice(0,-1).concat(['layout.html']).join("/");
+				
+				$.get( layout_url )
+					.always(function( layout ) {
+						
+						// If there is a layout then insert the data into the layout
+						if (typeof(layout) != "object") {
+							insert_data = layout.replace(/{{content}}/gi, function myFunction(x){
+								return insert_data;
+							});
+						}
+						
+						// Process subpage... careful not to recurse!
+						insert_data = process_page(insert_data, page_url);
+						
+						// Filter content through markdown if the file extension is .md
+						if (/\.md/.test(page_url)){ insert_data = marked(insert_data); }
+						
+						// Update the html in the browser
+						$("#"+idn).append(insert_data);
+							
+					});
+			});
+			
+			return "<div class='insert' id='"+idn+"'></div>"
+		}
+		
+		// If all else fails return the original tag.
+		return "{{"+parts.join("|")+"}}"
 	});
-	
-	// Filter content through markdown if the file extension is .md
-	if (/\.md/.test(url)){ 
-		d = marked(d); 
-	}
 	
 	return d
 }
 
 // Define functions for load transitions.
-function loadPageBasic(url) {
-	$.get( url, function( data ) {
-	  data = process_page( data,url );
-	  $("main").html( data );
-	});
+function loadPageBasic(data,url) {
+	$("main").html( data );
 }
 
-function loadPageSlide(url) {
-	$.get( url, function( data ) {
-		data = process_page( data,url )
-		$("#b").html( data )
-	}).then(function(){
-		  in_transition = true;
-
-		  if (menuIndex(url) > menuIndex(current_page)) {
-		  	$("#a").hide("slide", { direction: "left"}, 500);
-			$("#b").show("slide", { direction: "right", complete: function(){
+function loadPageSlide(data,url) {
+	$("#b").html( data )
+	in_transition = true;
+	
+	if (menuIndex(url) > menuIndex(current_page)) {
+		$("#a").hide("slide", { direction: "left"}, 500);
+		$("#b").show("slide", { direction: "right", complete: function(){
+			in_transition = false;
+			current_page = url;
+			$("#a").html($('#b').html());
+			$("#a").show();
+			$("#b").hide();
+		}}, 500);
+	} else if (menuIndex(url) < menuIndex(current_page) && menuIndex(url) != -1) {
+		$("#a").hide("slide", { direction: "right"}, 500);
+		$("#b").show("slide", { direction: "left", complete: function(){
+			in_transition = false;
+			current_page = url;
+			$("#a").html($('#b').html());
+			$("#a").show();
+			$("#b").hide();
+		}}, 500);
+	} else {
+		$("#a").hide("fade", { }, 500);
+		$("#b").show("fade", { complete: function(){
 			  in_transition = false;
 			  current_page = url;
 			  $("#a").html($('#b').html());
 			  $("#a").show();
 			  $("#b").hide();
-			  }}, 500);
-		  } else if (menuIndex(url) < menuIndex(current_page) && menuIndex(url) != -1) {
-		  	$("#a").hide("slide", { direction: "right"}, 500);
-			$("#b").show("slide", { direction: "left", complete: function(){
-			  in_transition = false;
-			  current_page = url;
-			  $("#a").html($('#b').html());
-			  $("#a").show();
-			  $("#b").hide();
-			  }}, 500);
-		  } else {
-		    $("#a").hide("fade", { }, 500);
-			$("#b").show("fade", { complete: function(){
-			  in_transition = false;
-			  current_page = url;
-			  $("#a").html($('#b').html());
-			  $("#a").show();
-			  $("#b").hide();
-			  }}, 500);
-		  }
+		}}, 500);
+	}
 		  
-	});
 }
 
 // Set load_transition variable at top to set transition type for page loads.
 function loadPage(url,save) {
 	highlightMenu(url);
-	switch(load_transition) {
-		case 'basic':
-			loadPageBasic(url)
-			break;
-		case 'slide':
-			loadPageSlide(url);
-			break;
-		default:
-			loadPageBasic(url);
-	}
 	
-	if (save == undefined || save == true) {
-		var old_url = window.location.href
-		var new_url = base_url+'?page='+url.replace(/^\.\//,'');
-		window.history.pushState({page: new_url},'test',new_url);
-	}
+	$.get( url, function( data ) {
+		
+		var layout_url = url.split('/').slice(0,-1).concat(['layout.html']).join("/")
+		
+		$.get( layout_url )
+			.always(function( layout ) {
+				
+				// Filter content through markdown if the file extension is .md
+				if (/\.md/.test(url)){ 
+					data = marked(data); 
+				}
+				
+				// If there is a layout then insert the data into the layout
+				if (typeof(layout) != "object") {
+					data = layout.replace(/{{content}}/gi, function myFunction(x){
+						return data;
+					});
+				}
+				
+				// Process the helpers in the resulting page/layout
+				data = process_page( data,url );
+				
+				// Render the appropriate page transition effect.
+				switch(load_transition) {
+					case 'basic':
+						loadPageBasic(data,url)
+						break;
+					case 'slide':
+						loadPageSlide(data,url);
+						break;
+					default:
+						loadPageBasic(data,url);
+				}
+				
+				// Store the URL of the current page in the history 
+				if (save == undefined || save == true) {
+					var old_url = window.location.href
+					var new_url = base_url+'?page='+url.replace(/^\.\//,'');
+					window.history.pushState({page: new_url},'test',new_url);
+				}
+					
+			});
+	});
 };
 
 function fileToClass(n){
@@ -341,7 +395,9 @@ function fileToClass(n){
 }
 
 function highlightMenu(fn) {
-    var c = fn.split('/').slice(0,3).join('/');
+	var c = fn;
+	if (fn.split('/').length > 4){ c = fn.split('/').slice(0,4).join('/');}
+	
     c = fileToClass(c);
 	$('#menu li').removeClass('active');
 	$('.'+c).addClass('active');
@@ -384,13 +440,16 @@ $(window).on("popstate", function(e) {
     loadPage('./' + /(.*)\?page\=(.*)/.exec(page)[2],false); // the part after the ?page=
 });
 
-// Get the directory listings.
-load_pages('./pages');
-load_images('./images');
-if (typeof(default_background) != 'undefined') {load_themes('./themes');}
+
 
 // When the page is loaded.
 $( document ).ready(function() {
+	
+	// Get the directory listings.
+	load_pages('./pages');
+	load_images('./images');
+	if (typeof(default_background) != 'undefined') {load_themes('./themes');}
+	
     // Home on Brand Click
     $('.navbar-brand').click(function(){
     	current_page = menu_pages[0];
