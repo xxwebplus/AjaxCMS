@@ -42,13 +42,13 @@ function param(key) {
 // Pages return just the html files (not directories)
 function findPages() {
 	return $.grep(pages, function(n,i){
-		return /[\.html|\.md]$/.test(n) && !/^layout\.html$/.test(n);
+		return /[\.html|\.md]$/.test(n) && !/\/layout\.html$/.test(n);
 	});
 }
 
 function findMenus(){
 	return $.grep(pages, function(n,i){
-		return /\/menus\/.+/.test(n) && !/^layout\.html$/.test(n);
+		return /\/menus\/.+/.test(n) && !/\/layout\.html$/.test(n);
 	});
 }
 
