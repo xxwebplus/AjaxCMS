@@ -15,7 +15,7 @@ The following is an exmaple of a Bootstrap two column adaptive layout that has a
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-8">{{content}}</div>
-    <div class="col-md-4">{{insert      | two}}</div>
+    <div class="col-md-4">{{     insert | two}}</div>
   </div>
 </div>
 

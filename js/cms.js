@@ -42,13 +42,13 @@ function param(key) {
 // Pages return just the html files (not directories)
 function findPages() {
 	return $.grep(pages, function(n,i){
-		return /[\.html|\.md]$/.test(n) && !/layout\.html$/.test(n);
+		return /[\.html|\.md]$/.test(n) && !/^layout\.html$/.test(n);
 	});
 }
 
 function findMenus(){
 	return $.grep(pages, function(n,i){
-		return /\/menus\/.+/.test(n) && !/layout\.html$/.test(n);
+		return /\/menus\/.+/.test(n) && !/^layout\.html$/.test(n);
 	});
 }
 
@@ -71,6 +71,7 @@ function load_pages(url) {
 		for (i = 3; i < rows.length - 1; i++) {
 			f = url + '/' + $(rows[i]).find('td a')[0].innerHTML;
 			pages.push(f);
+			
 			// Call directory recursively.
 			if (/\/$/.test(f)) { // if file list ends in / then it is a dir
 				load_pages(f);
@@ -171,10 +172,22 @@ function imageMatch(s) {
 
 // Return the url of the first partial-match page.
 function pageMatch(s) {
+	var best_match = "";
+	var return_url = "";
 	for (i=0; i<just_pages.length; i++) {
+		
 		var re = new RegExp(s,"gi");
-		if (re.test(just_pages[i])){return just_pages[i]} 
+		
+		// Best match is shortest filename without directories stripped of headers and footers. 
+		if (re.test(just_pages[i])){
+			var page_name = just_pages[i].split('/').slice(-1)[0].replace(/^\d+\-/,'').replace(/\..*?$/,'');
+			if ((page_name.length < best_match.length) || (best_match.length == 0)) {
+				best_match = page_name;
+				return_url = just_pages[i]
+			}
+		} 
 	}
+	return return_url;
 }
 
 // Do shortcut replacement in page html content.  (links and stuff)
@@ -309,20 +322,37 @@ function loadPageSlide(data,url) {
 }
 
 function loadInsert(fname,insert_location,callback) {
+	
 	console.log(fname);
 	$.get(fname,function(insert_contents){
-		
-		// Insert the contents of each file into data -- invalidate insertion patterns in content of replacement file until async is done.
-		data = data.replace(insert_location,insert_contents.replace(/{{/,'@@@@@').replace(/}}/,'#####'))
-		
-		// Run Callback if it exists
-		if (callback && typeof(callback) === "function") {callback();}	
+		var layout_url = fname.split('/').slice(0,-1).concat(['layout.html']).join("/");
+		$.get( layout_url )
+			.always(function( layout ) {
+				
+				// If there is a layout then insert the data into the layout
+				if (typeof(layout) != "object") {
+					insert_contents = layout.replace(/{{content}}/gi, function myFunction(x){
+						return insert_contents;
+					});
+				}
+				
+				// Filter content through markdown if the file extension is .md
+				if (/\.md/.test(fname)){ 
+					insert_contents = marked(insert_contents); 
+				}
+				
+				// Insert the contents of each file into data -- invalidate insertion patterns in content of replacement file until async is done.
+				data = data.replace(insert_location,insert_contents.replace(/{{/,'@@@@@').replace(/}}/,'#####'))
+				
+				// Run Callback if it exists
+				if (callback && typeof(callback) === "function") {callback();}	
+			});
 	});
 };
 
 function processInserts(callback) {
 	
-	var insert_list = data.match(/{{\s*insert.*?}}/gi);
+	var insert_list = data.match(/{{\s{0,4}insert.*?}}/gi); // skip if more than 5 spaces at the beginning for documentation purposes.
 
 	// If ther are no callbacks then done.
 	if (insert_list == null) {callback(); return}
@@ -360,6 +390,7 @@ function loadPage(url,save) {
 		var layout_url = url.split('/').slice(0,-1).concat(['layout.html']).join("/");
 		$.get( layout_url )
 			.always(function( layout ) {
+				
 				// If there is a layout then insert the data into the layout
 				if (typeof(layout) != "object") {
 					data = layout.replace(/{{content}}/gi, function myFunction(x){
