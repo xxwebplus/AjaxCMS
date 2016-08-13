@@ -22,6 +22,7 @@ var params = window.location.href.replace(/.*\?/,'').split('&');
 var current_page;
 var just_pages;
 var menu_pages;
+var data;
 
 
 // Resize <main> to fit children;
@@ -177,7 +178,7 @@ function pageMatch(s) {
 }
 
 // Do shortcut replacement in page html content.  (links and stuff)
-function process_page(data,url) {
+function process_page(url) {
 	var d; 
 	var size;
 	
@@ -260,40 +261,6 @@ function process_page(data,url) {
 					"</div>"
 		}
 		
-		// Inserts {{insert | page_partial }}
-		if (parts[0]=='insert' && parts.length == 2) {
-			var idn = rand(999999999)|0;
-			var page_url = pageMatch(parts[1])
-			var layout;
-			$.get( page_url, function( insert_data ) {
-				
-				var layout_url = page_url.split('/').slice(0,-1).concat(['layout.html']).join("/");
-				
-				$.get( layout_url )
-					.always(function( layout ) {
-						
-						// If there is a layout then insert the data into the layout
-						if (typeof(layout) != "object") {
-							insert_data = layout.replace(/{{content}}/gi, function myFunction(x){
-								return insert_data;
-							});
-						}
-						
-						// Process subpage... careful not to recurse!
-						insert_data = process_page(insert_data, page_url);
-						
-						// Filter content through markdown if the file extension is .md
-						if (/\.md/.test(page_url)){ insert_data = marked(insert_data); }
-						
-						// Update the html in the browser
-						$("#"+idn).append(insert_data);
-							
-					});
-			});
-			
-			return "<div class='insert' id='"+idn+"'></div>"
-		}
-		
 		// If all else fails return the original tag.
 		return "{{"+parts.join("|")+"}}"
 	});
@@ -341,51 +308,96 @@ function loadPageSlide(data,url) {
 		  
 }
 
+function loadInsert(fname,insert_location,callback) {
+	console.log(fname);
+	$.get(fname,function(insert_contents){
+		
+		// Insert the contents of each file into data -- invalidate insertion patterns in content of replacement file until async is done.
+		data = data.replace(insert_location,insert_contents.replace(/{{/,'@@@@@').replace(/}}/,'#####'))
+		
+		// Run Callback if it exists
+		if (callback && typeof(callback) === "function") {callback();}	
+	});
+};
+
+function processInserts(callback) {
+	
+	var insert_list = data.match(/{{\s*insert.*?}}/gi);
+
+	// If ther are no callbacks then done.
+	if (insert_list == null) {callback(); return}
+	var rcount = insert_list.length;
+
+	// Load all the files in the insert list
+	for (var i=0; i < insert_list.length; i++) {
+		var fname =  pageMatch(insert_list[i].replace(/[{}\s]/g,'').split("|")[1]);
+		loadInsert(fname,insert_list[i],function(){
+			rcount--;
+			
+			// Run Callback if it exists
+			if (rcount == 0 && callback && typeof(callback) === "function") {
+				data = data.replace(/@@@@@/,'{{').replace(/#####/,'}}');
+				
+				// If there are more inserts in the new version then recurse.
+				var more_inserts = data.match(/{{\s*insert.*?}}/gi);
+				if (more_inserts) {
+					processInserts(function(){
+						callback();
+					})
+				} else {
+					callback();
+				}
+			}
+		});
+	}
+}
+
 // Set load_transition variable at top to set transition type for page loads.
 function loadPage(url,save) {
 	highlightMenu(url);
 	
-	$.get( url, function( data ) {
-		
-		var layout_url = url.split('/').slice(0,-1).concat(['layout.html']).join("/")
-		
+	$.get( url, function(d) {
+		var layout_url = url.split('/').slice(0,-1).concat(['layout.html']).join("/");
 		$.get( layout_url )
 			.always(function( layout ) {
-				
-				// Filter content through markdown if the file extension is .md
-				if (/\.md/.test(url)){ 
-					data = marked(data); 
-				}
-				
 				// If there is a layout then insert the data into the layout
 				if (typeof(layout) != "object") {
 					data = layout.replace(/{{content}}/gi, function myFunction(x){
-						return data;
+						return d;
 					});
+				} else {
+					data = d;
 				}
 				
-				// Process the helpers in the resulting page/layout
-				data = process_page( data,url );
-				
-				// Render the appropriate page transition effect.
-				switch(load_transition) {
-					case 'basic':
-						loadPageBasic(data,url)
-						break;
-					case 'slide':
-						loadPageSlide(data,url);
-						break;
-					default:
-						loadPageBasic(data,url);
-				}
-				
-				// Store the URL of the current page in the history 
-				if (save == undefined || save == true) {
-					var old_url = window.location.href
-					var new_url = base_url+'?page='+url.replace(/^\.\//,'');
-					window.history.pushState({page: new_url},'test',new_url);
-				}
+				processInserts( function(){
+		
+					// Filter content through markdown if the file extension is .md
+					if (/\.md/.test(url)){ 
+						data = marked(data); 
+					}
 					
+					// Process the helpers in the resulting page/layout
+					data = process_page( url );
+					
+					// Render the appropriate page transition effect.
+					switch(load_transition) {
+						case 'basic':
+							loadPageBasic(data,url)
+							break;
+						case 'slide':
+							loadPageSlide(data,url);
+							break;
+						default:
+							loadPageBasic(data,url);
+					}
+					
+					// Store the URL of the current page in the history 
+					if (save == undefined || save == true) {
+						var old_url = window.location.href
+						var new_url = base_url+'?page='+url.replace(/^\.\//,'');
+						window.history.pushState({page: new_url},'test',new_url);
+					}
+				});			
 			});
 	});
 };
