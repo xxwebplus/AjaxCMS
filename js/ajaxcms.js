@@ -307,13 +307,13 @@ function process_page(url) {
 		        }
 		        var item = $("<li>").appendTo(list);
 		        if (!/\.html|\.md/.test(this.url)) {
-		        	$("<a>").attr("href", "#").text(this.name).appendTo(item);	
+		        	$("<a>").attr("href", "#").attr('class','folder').text(this.name).appendTo(item);	
 		        } else {
-		        	$("<a>").attr("onclick", "loadPage(\""+this.url+"\")").text(this.name).appendTo(item);
+		        	$("<a>").attr("onclick", "loadPage(\""+this.url+"\")").attr('class','file').text(this.name).appendTo(item);
 		        }
 		        elements[this.url] = item;
 		    });
-			return rootList.html();
+			return "<ul class=\"filelist\">" + rootList.html() + "</ul";
 		}
 		
 		// If all else fails return the original tag.

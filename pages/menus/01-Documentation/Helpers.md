@@ -30,3 +30,15 @@ Example: `{{carousel:5000     | image1:alt1:caption1 | image2:alt2:caption2 | im
 AJAX CMS includes bootstrap, so we use bootstraps carousel by default.  You can specify as many slides as you want.  Each slide can take a number of optional parameters separated by a ':' 
 character.  Specified in order they are the alt tag and a caption.  The caption can include html like `<h1>Some text</h1>`.  The 5000 in the above example is optional abd specifies the 
 speed in miliseconds between slide transitions.  So 5000 would mean 5 seconds between slides.  
+
+## Insert
+Example: `{{     insert | pagename }}`
+
+Will insert the contents of the page into the location of the helper.  The name of the page can be a partial match.  The page will be inserted along with any layout that the page is associated with.
+Insert can insert content into pages or layouts.  Multiple insertions can be used on a page.  Pages that contain insertions can also be inserted.  Possible uses include inserting common content or
+menus into sidebars if the insert is in a layout.  Or for inserting a laid-out page into a menu without a layout.
+
+## File List
+Example: `{{filelist     | ./pages/foldername }}`
+
+Will convert a folder and all it's subfolders into a vertical menu using the standard `<ul>`, `<li>` format.  Can be used to create vertical submenus.
