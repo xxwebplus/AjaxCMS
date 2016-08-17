@@ -8,6 +8,7 @@ $.ajaxSetup({ cache: false });
 
 var menus = [];
 var pages = [];
+var layouts = [];
 var blogs = [];
 var images = [];
 var themes = [];
@@ -42,6 +43,8 @@ function param(key) {
 // Pages return just the html files (not directories)
 function findPages() {
 	return $.grep(pages, function(n,i){
+		if (/\/layout\.html$/.test(n)) {layouts.push(n)}
+		
 		return /[\.html|\.md]$/.test(n) && !/\/layout\.html$/.test(n);
 	});
 }
@@ -274,6 +277,45 @@ function process_page(url) {
 					"</div>"
 		}
 		
+		// {{filelist | directory}}
+		if (parts[0] == 'filelist' && parts.length == 2) {
+			var level = 0;
+			var rstring = "";
+			var list =  $.grep(pages, function(n,i){return (n.indexOf(parts[1]) > -1) && (!/\/layout\.html$/.test(n))}).sort();
+			list.shift(); // Don't show the first directory.
+			
+			// Convert the list to a hash with the name and the url
+			for (var i = 0; i < list.length; i++) {
+				var fname = list[i].replace(/\/$/,'')
+				fname = fname.split("/")[fname.split("/").length-1];
+				fname = fname.replace(/\.md$|\.html$/,'').replace(/^\//,'').replace(/\/$/,'');
+				fname = fname.replace(/\d+-/,'');
+				fname = fname.replace(/_/g,' ')
+				list[i] = {name: fname,url: list[i].replace(/\/$/,'')}
+			}
+			
+			// Remove any empty strings that are left in the list
+			list = $.grep(list, function(n,i){return n.name != ""});
+			
+			var rootList = $("<ul>")
+		    var elements = {};
+		    $.each(list, function() {
+		        var parent = elements[this.url.substr(0, this.url.lastIndexOf("/"))];
+		        var list = parent ? parent.children("ul") : rootList;
+		        if (!list.length) {
+		            list = $("<ul>").appendTo(parent);
+		        }
+		        var item = $("<li>").appendTo(list);
+		        if (!/\.html|\.md/.test(this.url)) {
+		        	$("<a>").attr("href", "#").text(this.name).appendTo(item);	
+		        } else {
+		        	$("<a>").attr("onclick", "loadPage(\""+this.url+"\")").text(this.name).appendTo(item);
+		        }
+		        elements[this.url] = item;
+		    });
+			return rootList.html();
+		}
+		
 		// If all else fails return the original tag.
 		return "{{"+parts.join("|")+"}}"
 	});
@@ -321,26 +363,32 @@ function loadPageSlide(data,url) {
 		  
 }
 
+function lastLayout(filename) {
+	var pieces = filename.split("/")
+	for (i=1; i < pieces.length; i++) {
+		var name = pieces.slice(0,pieces.length-i).concat(["layout.html"]).join("/")
+		if ($.inArray(name, layouts) > -1) { return name }
+	}
+	
+	return pieces.slice(0,-1).concat(["layout.html"]).join("/")
+}
+
 function loadInsert(fname,insert_location,callback) {
 	
 	console.log(fname);
 	$.get(fname,function(insert_contents){
-		var layout_url = fname.split('/').slice(0,-1).concat(['layout.html']).join("/");
+		var layout_url = lastLayout(fname);
 		$.get( layout_url )
 			.always(function( layout ) {
 				
 				// If there is a layout then insert the data into the layout
 				if (typeof(layout) != "object") {
 					insert_contents = layout.replace(/{{content}}/gi, function myFunction(x){
+						if (/\.md/.test(fname)){ insert_contents = marked(insert_contents);	}
 						return insert_contents;
 					});
 				}
-				
-				// Filter content through markdown if the file extension is .md
-				if (/\.md/.test(fname)){ 
-					insert_contents = marked(insert_contents); 
-				}
-				
+
 				// Insert the contents of each file into data -- invalidate insertion patterns in content of replacement file until async is done.
 				data = data.replace(insert_location,insert_contents.replace(/{{/,'@@@@@').replace(/}}/,'#####'))
 				
@@ -387,13 +435,14 @@ function loadPage(url,save) {
 	highlightMenu(url);
 	
 	$.get( url, function(d) {
-		var layout_url = url.split('/').slice(0,-1).concat(['layout.html']).join("/");
+		var layout_url = lastLayout(url);
 		$.get( layout_url )
 			.always(function( layout ) {
 				
 				// If there is a layout then insert the data into the layout
 				if (typeof(layout) != "object") {
 					data = layout.replace(/{{content}}/gi, function myFunction(x){
+						if (/\.md/.test(url)){ d = marked(d); }
 						return d;
 					});
 				} else {
@@ -449,30 +498,33 @@ function highlightMenu(fn) {
 // Put the pages in the menu (can only be two levels deep)
 function makemenu() {
     $.each(menus, function(index,file){
-    	var filename = file;
+    	if (file.split("/").length < 6) { // Only go two levels deep in the menu structure.
     	
-    	filename = filename.replace(/\.\/pages\/menus\//,'');   // Remove ./pages from beginning
-    	filename = filename.replace(/\d+\-/,'');       			// Remove any digits followed by a dash at the beginning (use for sort)
-    	filename = filename.replace(/\.html$/,'');     			// Remove .html from end.
-    	filename = filename.replace(/\.md$/,'');  
-    	
-    	classname = fileToClass(file);
-
-    	if (/\/$/.test(filename)) { 
-    		// It is a directory
-    		$('#menu').append(
-    			'<li class="dropdown '+classname+'"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">'
-    			+ filename.replace(/\/$/,'')
-    			+ '<span class="caret"></span></a><ul class="dropdown-menu" id="'+filename+'"></ul></li>'
-    		);
-    	} else {
-    		// It is a file
-    		var parts = filename.split('/');
-    		if (parts.length > 1) {
-    			$('#'+parts[0]+'\\\/').append('<li class="file '+classname+'"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+parts[1].replace(/\d+\-/,'')+'</a></li>');
-    		} else {
-				$('#menu').append('<li class="file '+classname+'"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+filename+'</a></li>');
-    		}
+	    	var filename = file;
+	    	filename = filename.replace(/\.\/pages\/menus\//,'');   // Remove ./pages from beginning
+	    	filename = filename.replace(/\d+\-/,'');       			// Remove any digits followed by a dash at the beginning (use for sort)
+	    	filename = filename.replace(/\.html$/,'');     			// Remove .html from end.
+	    	filename = filename.replace(/\.md$/,''); 
+	    	filename = filename.replace(/_/g,' ');
+	    	
+	    	classname = fileToClass(file);
+	
+	    	if (/\/$/.test(filename)) { 
+	    		// It is a directory
+	    		$('#menu').append(
+	    			'<li class="dropdown '+classname+'"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">'
+	    			+ filename.replace(/\/$/,'')
+	    			+ '<span class="caret"></span></a><ul class="dropdown-menu" id="'+filename+'"></ul></li>'
+	    		);
+	    	} else {
+	    		// It is a file
+	    		var parts = filename.split('/');
+	    		if (parts.length > 1) {
+	    			$('#'+parts[0]+'\\\/').append('<li class="file '+classname+'"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+parts[1].replace(/\d+\-/,'')+'</a></li>');
+	    		} else {
+					$('#menu').append('<li class="file '+classname+'"><a onclick="loadPage(\''+file.replace(/\//g,'\\\/')+'\');">'+filename+'</a></li>');
+	    		}
+	    	}
     	}
 	});
 }
