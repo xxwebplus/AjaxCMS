@@ -313,7 +313,31 @@ function process_page(url) {
 		        }
 		        elements[this.url] = item;
 		    });
-			return "<ul class=\"filelist\">" + rootList.html() + "</ul";
+		    
+			return "<ul class=\"filelist\">" + rootList.html() + "</ul>";
+		}
+		
+		// {{blog | directory}}
+		if (parts[0] == 'blog' && parts.length == 2) {
+			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort();
+			for (var i=0; i< blog_list.length; i++) {
+				var blog_name = blog_list[i].split("/").slice(-1)[0].replace(/\.html$|\.md$/gi,'').replace(/_/g," ");
+				var blog_date_parts = /(\d+)-(\d+)-(\d+)(-(\d+)-)?/g.exec(blog_name);
+				var blog_date;
+				if (blog_date_parts != null) { 
+					blog_date = new Date(blog_date_parts.slice(1,4).join('-')) 
+					blog_name = blog_name.split('-').slice(-1)[0];
+				}
+				blog_list[i] = {name: blog_name, date: blog_date, url: blog_list[i]}
+			}
+			
+			var output = "";
+			for (var i=0; i < blog_list.length; i++){
+				output += "<div class=\"blog_entry\" data-url=\""+blog_list[i].url+"\">"
+				output += "<h1>"+blog_list[i].name+"</h1><time>"+blog_list[i].date.toLocaleDateString()+"</time></div>"
+			}
+			
+			return "<div class=\"blog_list\">"+output+"</div>"
 		}
 		
 		// If all else fails return the original tag.
