@@ -44,6 +44,12 @@ function hslToRgb(h, s, l){
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
+function decToHex(d){
+	var hex = Number(d).toString(16);
+	if (hex.length < 2) {hex = '0' + hex}
+	return hex
+}
+
 /**
 * Converts an RGB color value to HSL. Conversion formula
 * adapted from http://en.wikipedia.org/wiki/HSL_color_space.

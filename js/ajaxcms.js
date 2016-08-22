@@ -156,6 +156,7 @@ function load_themes(url) {
 					"<ul class=\"dropdown-menu\">"
 	    
 	    for (var ii=0; ii<themes.length; ii++) {
+	    	if(themes[ii] == "default") {continue}
 	    	menutext += "<li><a href=\"?theme="+themes[ii]+"\">"+themes[ii]+"</a></li>"
 	    }    		
 	    

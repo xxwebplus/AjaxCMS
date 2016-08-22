@@ -124,7 +124,7 @@ startBackground = function() {
 	image_list = [];
 	for (i=1; i<21; i++) {
 		img = new Image();
-		img.src = 'images/bubbles/'+animNum(i)+'.png';
+		img.src = 'themes/bubbles/images/'+animNum(i)+'.png';
 		image_list.push(img);
 		if (i==20) {play=true;}
 	}
