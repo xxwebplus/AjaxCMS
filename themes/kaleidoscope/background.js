@@ -95,7 +95,7 @@ startBackground = function() {
 	num_nodes = 4;    	// Number of nodes to animate
 	saturation = 1;		// Color saturation range 0-1
 	lightness = 0.5;	// Brightness value of colors 0-1
-	angles = 14;
+	angles = rand(12)+1;
 	
 	$('#background').css('background', '#000');
 	

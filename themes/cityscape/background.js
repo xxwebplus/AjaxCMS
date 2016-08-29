@@ -58,13 +58,13 @@ startBackground = function() {
   layers = [];
 
   // Add Background Layers in order from front to back.
-  addLayer('themes/default/images/city-a-blur.png');
-  addLayer('themes/default/images/city-b-blur.png');
-  addLayer('themes/default/images/city-a.png');
-  addLayer('themes/default/images/city-b.png');
-  addLayer('themes/default/images/city-a.png');
-  addLayer('themes/default/images/mountain-a.png');
-  addLayer('themes/default/images/mountain-b.png', -50);
+  addLayer('themes/cityscape/images/city-a-blur.png');
+  addLayer('themes/cityscape/images/city-b-blur.png');
+  addLayer('themes/cityscape/images/city-a.png');
+  addLayer('themes/cityscape/images/city-b.png');
+  addLayer('themes/cityscape/images/city-a.png');
+  addLayer('themes/cityscape/images/mountain-a.png');
+  addLayer('themes/cityscape/images/mountain-b.png', -50);
   
   // Animation Loop
   function draw() {
