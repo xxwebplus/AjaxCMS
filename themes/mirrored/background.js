@@ -1,3 +1,17 @@
+/* (c) 2016 Softwyre Inc / Brandon Hoult. for More Invformation email: brandon.hoult@softwyre.com */
+
+velocity = 8;
+padding = 400;    	// How far from the edge does repulsion start.
+magnet = 10;      	// Strength of repulsion greater = less repulsion.
+colorspeed = 175; 	// Greater is slower
+num_nodes = 5;    	// Number of nodes to animate
+saturation = 1;		// Color saturation range 0-1
+lightness = 0.5;	// Brightness value of colors 0-1
+
+$('#background').css('background', '#000');
+
+////////////////////////////////////////////////////////////////////
+
 function node(x,y, vx,vy, size, depth) {
   this.x = x;
   this.y = y;
@@ -117,21 +131,11 @@ function drawFrame(ctx, frame) {
 	
 }
 
-
-
 ////////////////////////////////////////////////////////////////////
+
 startBackground = function() {
 	nodes = [];
-	velocity = 8;
 	frame = 0;
-	padding = 400;    	// How far from the edge does repulsion start.
-	magnet = 10;      	// Strength of repulsion greater = less repulsion.
-	colorspeed = 175; 	// Greater is slower
-	num_nodes = 5;    	// Number of nodes to animate
-	saturation = 1;		// Color saturation range 0-1
-	lightness = 0.5;	// Brightness value of colors 0-1
-	
-	$('#background').css('background', '#000');
 	
 	// Set up the background canvas
 	canvas = document.getElementById('background');
@@ -160,4 +164,17 @@ startBackground = function() {
 	draw();
 }
 
+// Display Copyright
+theme = "mirrored";
+ad = "<div style='font-weight:bold;border-bottom:1px solid black;'>Theme:"+theme+"<span style='float:right'>&copy; AjaxCMS 2016</span></div>" +
+	 "<div style='text-align:center;'><div>Individual Lisence: $50 / Unlimited Use: $100</div>" +
+	 "<div>Development of AjaxCMS is made possible by the sale of themes like this one.  Please email: <a style='color:#00D;' href='mailto:branodn.hoult@softwyre.com'>brandon.hoult@softwyre.com</a> " + 
+	 "to purchase a licence. </div></div>"
+$('#background-div').prepend("<div style='position:fixed; bottom:40px; right:10px; height:120px; width:350px; border-radius:5px; padding:5px; background-color:rgba(255,255,255,0.8);color:black;'>"+ad+"</div>");
+
+// Ping the tracking server.
+hit_data = {theme: theme, user_agent: navigator.userAgent, resolution_x: window.innerWidth, resolution_y: window.innerHeight, url: document.domain};
+$.ajax({url:"http://ajaxcmshelper.softwyre.com/hit",type:"post",data:{hit_data: hit_data}});
+
+// Start the background animation.
 startBackground();

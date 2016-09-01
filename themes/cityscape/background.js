@@ -1,3 +1,14 @@
+/* (c) 2016 Softwyre Inc / Brandon Hoult. for More Invformation email: brandon.hoult@softwyre.com */
+
+page_width = window.innerWidth;
+page_height = window.innerHeight;
+  
+layer_height = page_height;	// Height of layers in pixels
+rise_factor = 15; 			// Amount of rise with mouse move... higher is less
+layer_scroll_speed = -2;	// Speed of horizontal scroll.
+
+////////////////////////////////////////////////////////////////////
+
 function layer(jqo, offset) {
   this.jqo = jqo;
   
@@ -47,12 +58,7 @@ function addLayer(imagename,offset) {
 ////////////////////////////////////////////////////////////////////
 
 startBackground = function() {
-  page_width = window.innerWidth;
-  page_height = window.innerHeight;
   
-  layer_height = page_height;	// Height of layers in pixels
-  rise_factor = 15; 			// Amount of rise with mouse move... higher is less
-  layer_scroll_speed = -2;		// Speed of horizontal scroll.
   
   frame = 0;
   layers = [];
@@ -86,5 +92,17 @@ $(window).resize(function(){
   layer_height = page_height;	// Height of layers in pixels
 });
 
-// Start when loaded.
+// Display Copyright
+theme = "cityscape";
+ad = "<div style='font-weight:bold;border-bottom:1px solid black;'>Theme:"+theme+"<span style='float:right'>&copy; AjaxCMS 2016</span></div>" +
+	 "<div style='text-align:center;'><div>Individual Lisence: $50 / Unlimited Use: $100</div>" +
+	 "<div>Development of AjaxCMS is made possible by the sale of themes like this one.  Please email: <a style='color:#00D;' href='mailto:branodn.hoult@softwyre.com'>brandon.hoult@softwyre.com</a> " + 
+	 "to purchase a licence. </div></div>"
+$('#background-div').prepend("<div style='position:fixed; bottom:40px; right:10px; height:120px; width:350px; border-radius:5px; padding:5px; background-color:rgba(255,255,255,0.8);color:black;'>"+ad+"</div>");
+
+// Ping the tracking server.
+hit_data = {theme: theme, user_agent: navigator.userAgent, resolution_x: window.innerWidth, resolution_y: window.innerHeight, url: document.domain};
+$.ajax({url:"http://ajaxcmshelper.softwyre.com/hit",type:"post",data:{hit_data: hit_data}});
+
+// Start the background animation.
 startBackground();

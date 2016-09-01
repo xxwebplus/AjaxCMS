@@ -19,6 +19,9 @@
 		<!-- Markdown parser -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 		
+		<!-- Polyfills -->
+		<script src="js/array.generics.min.js"></script>
+		
 		<!-- Background Animation -->
 		<script src="js/victor.js"></script>
 		<script src="js/canvasstuff.js"></script>
@@ -75,6 +78,9 @@
 			}
 			
 			#a, #b {
+				position:absolute; 
+				width:100%;
+				z-index:0;
 				background-color:rgba(200,200,255,0.9);
 				padding:0px;
 				border-radius:0px 0px 8px 8px;
@@ -83,11 +89,6 @@
 			
 			#main>div {
 				padding: 10px;
-			}
-			
-			#a, #b {
-				position:absolute; 
-				width:100%;
 			}
 			
 			#main img {

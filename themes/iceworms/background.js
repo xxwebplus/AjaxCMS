@@ -1,3 +1,11 @@
+/* (c) 2016 Softwyre Inc / Brandon Hoult. for More Invformation email: brandon.hoult@softwyre.com */
+
+$('#background').css('background', 'white');
+
+velocity_per_frame = 1;
+
+////////////////////////////////////////////////////////////////////
+
 function node(x,y, vx,vy, size, depth) {
   this.x = x;
   this.y = y;
@@ -38,37 +46,9 @@ function drawFrame(ctx, frame) {
 		  return ( (i.y > 0) && ((i.x > 0) && (i.x < page_width- img.width)) )	
 		});
 	    
-	    // Pop bubbles with mouse.
-	    var pops = [];
-	    for (var i = 0; i<nodes.length; i++) {
-	    	
-	    	if (nodes[i].pop > 0) {continue}
-	    	
-	    	var nodesize = (nodes[i].size / nodes[i].depth);
-	    	var ns2 = nodesize / 2;
-	    	if ((nodes[i].x + ns2 < cursorX + ns2) && 
-	    	    (nodes[i].x + ns2 > cursorX - ns2) && 
-	    	    (nodes[i].y + nodesize < (cursorY*0.94) + ns2) && 
-	    	    (nodes[i].y + nodesize > (cursorY*0.94) - ns2)) {
-	    			var n = nodes[i];
-	    			for (var ii=0; ii<rand(5); ii++) {
-	    				var pop = new node(n.x + rand(nodesize) - ns2 ,n.y + rand(nodesize) - ns2, n.velocity.x + rand(5),n.velocity.y + rand(5), ns2,n.depth);
-	    				pop.pop = 100;
-	    				pops.push(pop);
-	    			}
-	    			nodes.splice(i,1);
-	    	}
- 		}
- 		nodes = nodes.concat(pops);
- 		
- 		
-		
 		// Clear the frame.
-		//ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.fillRect(0,0,page_width,page_height);
-		
-		//ctx.drawImage(image_list[3], cursorX-75,(cursorY*0.94)-75, 150,150);
-		
+
 		// Draw Stuff on The Array
 		for (n = 0; n < nodes.length; n++) {
 		  nodes[n].frame(cd);
@@ -107,8 +87,6 @@ startBackground = function() {
 	frame = 0;
 	play=false;
 	
-	$('#background').css('background', '#FFF');
-	
 	// Set up the background canvas
 	canvas = document.getElementById('background');
 	ctx = canvas.getContext("2d");
@@ -125,7 +103,7 @@ startBackground = function() {
 	image_list = [];
 	for (i=1; i<21; i++) {
 		img = new Image();
-		img.src = 'images/bubbles/'+animNum(i)+'.png';
+		img.src = 'themes/bubbles/images/'+animNum(i)+'.png';
 		image_list.push(img);
 		if (i==20) {play=true;}
 	}
@@ -140,4 +118,17 @@ startBackground = function() {
 	draw();
 }
 
+// Display Copyright
+theme = "iceworms";
+ad = "<div style='font-weight:bold;border-bottom:1px solid black;'>Theme:"+theme+"<span style='float:right'>&copy; AjaxCMS 2016</span></div>" +
+	 "<div style='text-align:center;'><div>Individual Lisence: $50 / Unlimited Use: $100</div>" +
+	 "<div>Development of AjaxCMS is made possible by the sale of themes like this one.  Please email: <a style='color:#00D;' href='mailto:branodn.hoult@softwyre.com'>brandon.hoult@softwyre.com</a> " + 
+	 "to purchase a licence. </div></div>"
+$('#background-div').prepend("<div style='position:fixed; bottom:40px; right:10px; height:120px; width:350px; border-radius:5px; padding:5px; background-color:rgba(255,255,255,0.8);color:black;'>"+ad+"</div>");
+
+// Ping the tracking server.
+hit_data = {theme: theme, user_agent: navigator.userAgent, resolution_x: window.innerWidth, resolution_y: window.innerHeight, url: document.domain};
+$.ajax({url:"http://ajaxcmshelper.softwyre.com/hit",type:"post",data:{hit_data: hit_data}});
+
+// Start the background animation.
 startBackground();

@@ -1,3 +1,14 @@
+/* (c) 2016 Softwyre Inc / Brandon Hoult. for More Invformation email: brandon.hoult@softwyre.com */
+
+page_width = window.innerWidth;
+page_height = window.innerHeight;
+
+velocity_per_frame = 1;
+curliness = 10;
+num_nodes = (page_width * page_height / 150000);
+
+////////////////////////////////////////////////////////////////////
+
 function node(x, y, vx, vy, h, s, l, a) {
   this.x = x;
   this.y = y;
@@ -15,7 +26,7 @@ function node(x, y, vx, vy, h, s, l, a) {
       this.hsl[0] += 0.001;
       
       // Rotate the velocity using perlin noise.
-      this.velocity.rotateDeg(perlin.get1d(frame / 600 + x + y) * 10); // Curliness 
+      this.velocity.rotateDeg(perlin.get1d(frame / 600 + x + y) * curliness); // Curliness 
       
       // Step through each pixel of node velocity (we are drawing one pixel at a time)
       for (l = 0; l < this.velocity.length(); l++) {
@@ -27,17 +38,6 @@ function node(x, y, vx, vy, h, s, l, a) {
         // Apply Movement
         this.x += offsetX;
         this.y += offsetY;
-        
-        // Move toward mouse cursor
-        // if (cursorX < window.innerWidth - 5 && cursorX > 5 && cursorY < window.innerHeight - 5 && cursorY > 5) {
-	       // var mouseV = new Victor(this.x - cursorX, this.y - cursorY);
-	       // var mouseVL = mouseV.length();
-	       // var gravity;
-	       // if (mouseVL > 0) {gravity = 10000 / (Math.pow(mouseVL,1.7))} else {gravity = 0}
-	       // var vectorN = vectorNormal(mouseV);
-	       // this.x += vectorN.x * gravity;
-	       // this.y += vectorN.y * gravity;
-        // }
         
         // Draw Node as Pixel
         setPixel(cd, this.x, this.y, r, g, b, a);
@@ -86,13 +86,10 @@ function drawFrame(ctx, frame) {
 ////////////////////////////////////////////////////////////////////
 startBackground = function() {
   nodes = [];
-  velocity_per_frame = 1;
   frame = 0;
 
   canvas = document.getElementById('background');
   ctx = canvas.getContext("2d");
-  page_width = window.innerWidth;
-  page_height = window.innerHeight;
   ctx.canvas.width = page_width;
   ctx.canvas.height = page_height;
   ctx.strokeStyle = "black";
@@ -100,7 +97,7 @@ startBackground = function() {
   cd = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   // Create Animation Nodes
-  num_nodes = (page_width * page_height / 150000);
+  
   for (i = 0; i < num_nodes; i++) {
     nodes.push(new node(rand(page_width), rand(page_height), rand(10) - 5, rand(10) - 5, rand(360), 1, 0.5, 255));
   }
@@ -115,4 +112,17 @@ startBackground = function() {
   draw();
 }
 
+// Display Copyright
+theme = "ribbons";
+ad = "<div style='font-weight:bold;border-bottom:1px solid black;'>Theme:"+theme+"<span style='float:right'>&copy; AjaxCMS 2016</span></div>" +
+	 "<div style='text-align:center;'><div>Individual Lisence: $50 / Unlimited Use: $100</div>" +
+	 "<div>Development of AjaxCMS is made possible by the sale of themes like this one.  Please email: <a style='color:#00D;' href='mailto:branodn.hoult@softwyre.com'>brandon.hoult@softwyre.com</a> " + 
+	 "to purchase a licence. </div></div>"
+$('#background-div').prepend("<div style='position:fixed; bottom:40px; right:10px; height:120px; width:350px; border-radius:5px; padding:5px; background-color:rgba(255,255,255,0.8);color:black;'>"+ad+"</div>");
+
+// Ping the tracking server.
+hit_data = {theme: theme, user_agent: navigator.userAgent, resolution_x: window.innerWidth, resolution_y: window.innerHeight, url: document.domain};
+$.ajax({url:"http://ajaxcmshelper.softwyre.com/hit",type:"post",data:{hit_data: hit_data}});
+
+// Start the background animation.
 startBackground();

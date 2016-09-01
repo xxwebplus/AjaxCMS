@@ -1,3 +1,11 @@
+/* (c) 2016 Softwyre Inc / Brandon Hoult. for More Invformation email: brandon.hoult@softwyre.com */
+
+$('#background').css('background', 'linear-gradient(#BBF,#446,#2B1F19,#000');
+
+velocity_per_frame = 1;
+
+////////////////////////////////////////////////////////////////////
+
 function node(x,y, vx,vy, size, depth) {
   this.x = x;
   this.y = y;
@@ -106,8 +114,6 @@ startBackground = function() {
 	frame = 0;
 	play=false;
 	
-	$('#background').css('background', 'linear-gradient(#BBF,#446,#2B1F19,#000');
-	
 	// Set up the background canvas
 	canvas = document.getElementById('background');
 	ctx = canvas.getContext("2d");
@@ -139,4 +145,17 @@ startBackground = function() {
 	draw();
 }
 
+// Display Copyright
+theme = "bubbles";
+ad = "<div style='font-weight:bold;border-bottom:1px solid black;'>Theme:"+theme+"<span style='float:right'>&copy; AjaxCMS 2016</span></div>" +
+	 "<div style='text-align:center;'><div>Individual Lisence: $50 / Unlimited Use: $100</div>" +
+	 "<div>Development of AjaxCMS is made possible by the sale of themes like this one.  Please email: <a style='color:#00D;' href='mailto:branodn.hoult@softwyre.com'>brandon.hoult@softwyre.com</a> " + 
+	 "to purchase a licence. </div></div>"
+$('#background-div').prepend("<div style='position:fixed; bottom:40px; right:10px; height:120px; width:350px; border-radius:5px; padding:5px; background-color:rgba(255,255,255,0.8);color:black;'>"+ad+"</div>");
+
+// Ping the tracking server.
+hit_data = {theme: theme, user_agent: navigator.userAgent, resolution_x: window.innerWidth, resolution_y: window.innerHeight, url: document.domain};
+$.ajax({url:"http://ajaxcmshelper.softwyre.com/hit",type:"post",data:{hit_data: hit_data}});
+
+// Start the background animation.
 startBackground();
