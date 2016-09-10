@@ -1,9 +1,13 @@
 # Helpers
 
-AJAX CMS uses various "helpers" to make it easy to insert complex code.  Helpers are specified in the content of the page using double brace symbol ie. `{{helper      | param1 | param2 ...}}`.  
+AJAX CMS uses various "helpers" to make it easy to insert complex code.  Helpers are specified in the content of the page using double brace symbol ie. `{{helper      | param1 | param2 ...}}`.
 Each helper can take a number of parameters separated by the "|" character.  The parameters are in sequential order, it is generally valid to leave off parameters from the end if they
 are not needed.  Before the page is shown the helper will be replaced by the appropriate content.  The following list will show all the helpers currently enabled in AJAX and their format.  If 
 a helper contains five or more sequential spaces it will be skipped.  This is so that we can show the helper code without it being replaced...like on this page.
+
+Except for Inserts, each helper can contain an arbitrary number of "attributes", these are parameters that have a "=>" character.  An "attribuite parameter" in the format "attr=>value" will be inserted in the topmost
+html element as attributes in the format attr="value".  This can be used for any html attributes.  For example `{{a      | documentation | class=>testclass | id=>testid }}` will be converted to
+`<a class="testclass" id="testid" onclick="loadPage('./pages/menus/01-Documentation/Helpers.md')">documentation</a>`
 
 Along with these helpers, markdown includes a number of similar shortcuts.  Pages with a .md extension will be filtered through markdown.  AJAX CMS uses githubs version of markdown so the 
 documentation at https://guides.github.com/features/mastering-markdown/ should be applicable.
@@ -18,7 +22,7 @@ outside of your website.  For links inside of your website that may not be in th
 that link.  For the page it will use the first partial match.  So if the page is in "./pages/menus/test.html" you only have to specify "test" assuming that you only have one page called "test".
 
 ## Image
-Example: `{{i      | image | alt | class | style}}`
+Example: `{{i      | image | alt }}`
 
 Images should be stored in the "images" folder.  You can have as many subfolders as you want under "images" in order to keep them organized.  Like Anchors they only require a partial match, 
 so an image called "./images/vacation/colorado.jpg" could just be specified as "colorado".  The default css in index.html includes the following presets: icon, thumb, small, medium, large,
@@ -37,6 +41,8 @@ Example: `{{     insert | pagename }}`
 Will insert the contents of the page into the location of the helper.  The name of the page can be a partial match.  The page will be inserted along with any layout that the page is associated with.
 Insert can insert content into pages or layouts.  Multiple insertions can be used on a page.  Pages that contain insertions can also be inserted.  Possible uses include inserting common content or
 menus into sidebars if the insert is in a layout.  Or for inserting a laid-out page into a menu without a layout.
+
+Note that attributes cannot be used with inserts.  Instead wrap the insert manually, for example: `<div id='test'>{{     insert | pagename }}</div>`
 
 ## File List
 Example: `{{filelist     | ./pages/foldername }}`

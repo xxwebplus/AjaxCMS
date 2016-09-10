@@ -3,10 +3,13 @@
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 		<meta charset="UTF-8">
-		<title>AJAX CMS</title>
+		<title>AjaxCMS</title>
 		
-		<!-- Comment this out to remove the themes menu -->
-		<script>var default_background = "default";</script>
+		<!-- Configuration -->
+		<script>
+			var default_background = "default";
+			var ajaxcms_themes_menu = true;
+		</script>
 		
 		<!-- Jquery -->
 		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
@@ -25,7 +28,6 @@
 		<!-- Background Animation -->
 		<script src="js/victor.js"></script>
 		<script src="js/canvasstuff.js"></script>
-		<script src="js/stackblur.min.js"></script>
 		<script src="js/jquery-mobile-swipe.js"></script>
 		
 		<!-- CMS Javascript -->
@@ -143,6 +145,25 @@
 			}
 			footer a {color:blue;}
 			footer a:hover {color:#55F;}
+			
+			.blog_entry {
+				border:1px solid black;
+				border-radius:10px;
+				margin:10px;
+				padding:5px;
+				background-color:rgba(255,255,255,0.8);
+				position:relative;
+				cursor: pointer; 
+			}
+			.blog_entry h1 {
+				margin-top:0px;
+				font-size:150%;
+			}
+			.blog_entry time {
+				position:absolute;
+				top:5px;
+				right:5px;
+			}
 		</style>
 	</head>
 	
@@ -163,7 +184,7 @@
 				      <span class="icon-bar"></span>
 				      <span class="icon-bar"></span>
 				    </button>
-				    <a class="navbar-brand" href="#">AJAX CMS</a>
+				    <a class="navbar-brand" href="#">AjaxCMS</a>
 				  </div>
 				  <div id="navbar" class="navbar-collapse collapse">
 				    <ul id='menu' class="nav navbar-nav">

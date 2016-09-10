@@ -167,7 +167,7 @@ function load_themes(url) {
 	    
 	    for (var ii=0; ii<themes.length; ii++) {
 	    	if(themes[ii] == "default") {continue}
-	    	menutext += "<li><a href=\"?theme="+themes[ii]+"\">"+themes[ii]+"</a></li>"
+	    	menutext += "<li><a href=\"?theme="+themes[ii]+"&page=blank.html\">"+themes[ii]+"</a></li>"
 	    }    		
 	    
 	    menutext += "</ul></li></ul>"
@@ -205,15 +205,40 @@ function pageMatch(s) {
 }
 
 // Do shortcut replacement in page html content.  (links and stuff)
-function process_page(url) {
+function process_page(sdata) {
 	var d; 
 	var size;
 	
-	// Convert stuff in {{ }} to page transition (use for internal links) example: {{page/test.html}}
+	// If a string is passed in then process the string.  Otherwise process global data variable.
+	if (sdata === undefined) {
+		d = data;
+	} else {
+		d = sdata;
+	}
 	
-	d = data.replace(/{{.*}}/gi, function myFunction(x){
-		var parts = x.replace(/{{/g,'').replace(/}}/g,'').split('|');
+	// Convert stuff in {{ }} (helpers)
+	d = d.replace(/{{.*}}/gi, function myFunction(x){
+		var pieces = x.replace(/{{/g,'').replace(/}}/g,'').split('|');
+		var parts = [];
+		var attributes = [];
+		var attribute_string = ""
 		
+		// separate parts and attributes
+		for (var i=0; i<pieces.length; i++) {
+			if (/=&gt;/.test(pieces[i])){
+				attributes.push(pieces[i]);
+			} else {
+				parts.push(pieces[i]);
+			}
+		}
+		
+		// Convert attributes to string attr => value becomes attr='value'
+		for (var i=0; i<attributes.length; i++){
+			var apieces = attributes[i].split('=&gt;');
+			attributes[i] = apieces[0].trim()+"=\""+apieces[1].trim()+"\"";
+		}
+		attributes_string = attributes.join(" ");
+
         // Blank - Skip any helpers that contain five sequential spaces.  This is so we can document the helpers format without it being replaced.  HTML merges the spaces.
         if (/\s\s\s\s\s/.test(x)) {
         	return x.replace(/\s+/,' ')
@@ -224,27 +249,21 @@ function process_page(url) {
         
 		// Anchors
 		if (parts[0]=='a' && parts.length == 2) {
-			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+pageMatch(parts[1])+"</a>";
+			return "<a "+attributes_string+" onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+parts[1]+"</a>";
 		}
 		if (parts[0]=='a' && parts.length == 3) {
-			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+parts[2]+"</a>";
+			return "<a "+attributes_string+" onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\">"+parts[2]+"</a>";
 		}
 		if (parts[0]=='a' && parts.length == 4) {
-			return "<a onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\" alt=\"" + parts[3] + "\">"+parts[2]+"</a>";
+			return "<a "+attributes_string+" onclick=\"loadPage(\'" + pageMatch(parts[1]) + "\')\" alt=\"" + parts[3] + "\">"+parts[2]+"</a>";
 		}
 		
 		// Images
 		if (parts[0]=='i' && parts.length == 2) {
-			return "<img src=\"" + imageMatch(parts[1]) + "\" alt=\"" + imageMatch(parts[1]) + "\">";
+			return "<img "+attributes_string+" src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[1] + "\">";
 		}
 		if (parts[0]=='i' && parts.length == 3) {
-			return "<img src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[2] + "\">";
-		}
-		if (parts[0]=='i' && parts.length == 4) {
-			return "<img src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[2] + "\" class=\"" + parts[3] + "\">";
-		}
-		if (parts[0]=='i' && parts.length == 5) {
-			return "<img src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[2] + "\" class=\"" + parts[3] + "\" style=\"" + parts[4] + "\">";
+			return "<img "+attributes_string+" src=\"" + imageMatch(parts[1]) + "\" alt=\"" + parts[2] + "\">";
 		}
 		
 		// Carousel {{ carousel:speed | image1:alt1:caption1 | image2:alt2:caption2 | image3:alt3:caption3 }}
@@ -278,7 +297,7 @@ function process_page(url) {
 			},1000);
 			
 			// Return the Carousel
-			return 	"<div id=\"carousel_"+idn+"\" class=\"carousel slide auto\" data-ride=\"carousel\">" +
+			return 	"<div "+attributes_string+" id=\"carousel_"+idn+"\" class=\"carousel slide auto\" data-ride=\"carousel\">" +
 					"<ol class=\"carousel-indicators\">"+carousel_indicators+"</ol>" +
 					"<div class=\"carousel-inner\" role=\"listbox\">" + slides + "</div>" +
 					"<a class=\"left carousel-control\" href=\"#carousel_"+idn+"\" role=\"button\" data-slide=\"prev\">" +
@@ -325,18 +344,18 @@ function process_page(url) {
 		        elements[this.url] = item;
 		    });
 		    
-			return "<ul class=\"filelist\">" + rootList.html() + "</ul>";
+			return "<ul "+attributes_string+" class=\"filelist\">" + rootList.html() + "</ul>";
 		}
 		
 		// {{blog | directory}}
 		if (parts[0] == 'blog' && parts.length == 2) {
-			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort();
+			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort().reverse();
 			for (var i=0; i< blog_list.length; i++) {
 				var blog_name = blog_list[i].split("/").slice(-1)[0].replace(/\.html$|\.md$/gi,'').replace(/_/g," ");
 				var blog_date_parts = /(\d+)-(\d+)-(\d+)(-(\d+)-)?/g.exec(blog_name);
 				var blog_date;
 				if (blog_date_parts != null) { 
-					blog_date = new Date(blog_date_parts.slice(1,4).join('-')) 
+					blog_date = new Date(blog_date_parts.slice(1,4).join('/')) 
 					blog_name = blog_name.split('-').slice(-1)[0];
 				}
 				blog_list[i] = {name: blog_name, date: blog_date, url: blog_list[i]}
@@ -344,15 +363,24 @@ function process_page(url) {
 			
 			var output = "";
 			for (var i=0; i < blog_list.length; i++){
-				output += "<div class=\"blog_entry\" data-url=\""+blog_list[i].url+"\">"
-				output += "<h1>"+blog_list[i].name+"</h1><time>"+blog_list[i].date.toLocaleDateString()+"</time></div>"
+				output += "<div class=\"blog_entry\" data-url=\""+blog_list[i].url+"\" onclick=\"loadPage('"+blog_list[i].url+"')\">"
+				output += "<h1>"+blog_list[i].name+"</h1><time>"+blog_list[i].date.toLocaleDateString()+"</time><div class='blog_content'></div></div>"
 			}
 			
-			return "<div class=\"blog_list\">"+output+"</div>"
+			return "<div "+attributes_string+" class=\"blog_list\">"+output+"</div>"+
+				"<script>\n"+
+					"$('.blog_list .blog_entry').each(function(){\n"+
+						"if (/\\.md$/.test(this.dataset.url)){\n"+
+							"$(this).find('.blog_content').load(this.dataset.url, function(data){$(this).html(process_page(marked(data)))});\n"+
+						"} else {\n"+
+							"$(this).find('.blog_content').load(this.dataset.url, function(data){$(this).html(process_page(data))});\n"+
+						"}\n"+
+					"});\n" +
+				"</script>\n"
 		}
 		
 		// If all else fails return the original tag.
-		return "{{"+parts.join("|")+"}}"
+		return "{{"+pieces.join("|")+"}}"
 	});
 	
 	return d
@@ -492,7 +520,7 @@ function loadPage(url,save) {
 					}
 					
 					// Process the helpers in the resulting page/layout
-					data = process_page( url );
+					data = process_page();
 					
 					// Render the appropriate page transition effect.
 					switch(load_transition) {
@@ -512,6 +540,10 @@ function loadPage(url,save) {
 						var new_url = base_url+'?page='+url.replace(/^\.\//,'');
 						window.history.pushState({page: new_url},'test',new_url);
 					}
+					
+					// Update the body id with the name of the page (for css)
+					$('body').attr("id",url.replace(/[\s\/\.]/g,'_'));
+					
 				});			
 			});
 	});
@@ -539,8 +571,8 @@ function makemenu() {
 	    	filename = filename.replace(/\.\/pages\/menus\//,'');   // Remove ./pages from beginning
 	    	filename = filename.replace(/\d+\-/,'');       			// Remove any digits followed by a dash at the beginning (use for sort)
 	    	filename = filename.replace(/\.html$/,'');     			// Remove .html from end.
-	    	filename = filename.replace(/\.md$/,''); 
-	    	filename = filename.replace(/_/g,' ');
+	    	filename = filename.replace(/\.md$/,''); 				// Remove .md from end.
+	    	filename = filename.replace(/_/g,' ');					// Replace underscores with spaces.
 	    	
 	    	classname = fileToClass(file);
 	
@@ -571,14 +603,13 @@ $(window).on("popstate", function(e) {
 });
 
 
-
 // When the page is loaded.
 $( document ).ready(function() {
 	
 	// Get the directory listings.
 	load_pages('./pages');
 	load_images('./images');
-	if (typeof(default_background) != 'undefined') {load_themes('./themes');}
+	if (ajaxcms_themes_menu) {load_themes('./themes');}
 	
     // Home on Brand Click
     $('.navbar-brand').click(function(){
