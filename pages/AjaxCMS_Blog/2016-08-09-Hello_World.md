@@ -49,7 +49,7 @@ This has been the result of many months of work and I look forward to hearing an
 <script>
 // Disqus
 var disqus_config = function () {
-    this.page.url = window.location.pathname;  // Replace PAGE_URL with your page's canonical URL variable
+    this.page.url = window.location.href;  // Replace PAGE_URL with your page's canonical URL variable
     this.page.identifier = ajaxcms_page_id; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
 };
 
