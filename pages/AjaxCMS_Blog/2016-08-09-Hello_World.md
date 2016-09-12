@@ -44,6 +44,7 @@ We will update this blog as new versions become available.
 ### Conclusion.
 
 This has been the result of many months of work and I look forward to hearing any questions or suggestions you might have.  Feel free to contact me at <brandon.hoult@softwyre.com>.
+The source code (install files) can be downloaded from https://github.com/bhoult/AjaxCMS.
 
 <div id="disqus_thread"></div>
 <script>

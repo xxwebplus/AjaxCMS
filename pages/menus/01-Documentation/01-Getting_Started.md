@@ -3,7 +3,7 @@
 ## 1. Setting up Apache on the webserver.
 AjaxCMS currently requires that you use the apache webserver.  The reason for this is that it functions by parsing the file listing that apache provides if it is enabled and there is not a "index.html" file in the 
 folder.  In the future we plan to make it work for other web servers and also by allowing a small bit of code to run on the server in a cronjob to create a static file listing.  You can see how this works by going to
-http://ajaxcms.org/pages to see the source files being used by this site.
+http://ajaxcms.org/pages to see the source files being used by this site. The full source code (install files) can be downloaded from https://github.com/bhoult/AjaxCMS.
 
 AjaxCMS is mainly developed under Linux, but since apache can be run on any of the major operating systems it should work on anything.  If you are just getting started we would suggest purchasing a shared host 
 from http://hostgator.com, http://siteground.com, http://dreamhost.com or similar.  These all use apache and you should just be able to copy AjaxCMS to your public_html folder.  If you are more advanced and are 

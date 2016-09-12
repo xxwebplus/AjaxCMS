@@ -54,3 +54,4 @@ like a shopping cart, discussion forum, wiki, calendar, form creation etc. Pleas
 AjaxCMS.
 
 If you have any questions or suggestions or would like to purchase a theme please contact me at <a href="mailto:brandon.hoult@softwyre.com">brandon.hoult@softwyre.com</a>
+The source code (install files) can be downloaded from https://github.com/bhoult/AjaxCMS.
