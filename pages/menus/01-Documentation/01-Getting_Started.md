@@ -1,7 +1,6 @@
 # Getting Started
 
 ## 1. Setting up Apache on the webserver.
-
 AjaxCMS currently requires that you use the apache webserver.  The reason for this is that it functions by parsing the file listing that apache provides if it is enabled and there is not a "index.html" file in the 
 folder.  In the future we plan to make it work for other web servers and also by allowing a small bit of code to run on the server in a cronjob to create a static file listing.  You can see how this works by going to
 http://ajaxcms.org/pages to see the source files being used by this site.
@@ -21,7 +20,6 @@ http://wiki.apache.org/httpd/DirectoryListings If you can see the files listed t
 In Ubuntu Linux you can install everything you need by simply typing "apt-get install apache2" on the command line.
 
 ## 2. Install AjaxCMS.
-
 Once apache is up and running you simply copy the files into the apache root directory or into a virtual-host.  This can be done by either downloading the latest AjaxCMS archive or by using [git](https://git-scm.com/).
 I would suggest learning git since it will allow you to track changes over time, update to the latest version of AjaxCMS or rollback to a previous version if a file gets accidentally deleted or modified.  What you will 
 end up with is a complete copy of this website running on your server.
@@ -32,7 +30,6 @@ find a CDN for are included in the js folder.  If you know javascript I would su
 that I am aware of.
 
 ## 3. Customization.
-
 To build your own site, just delete everything in the "pages" and the "pages/menus" folder and the "images" folder.  You can also delete any other folders apart from "js" and "themes/default".
 Create a page called 01-Home.md (if you want to use Markdown, or 01-Home.html (if you would rather just use plain html) in the pages/menus folder.  Go to the url where your site is hosted and you should see your 
 content with just "Home" in the menu.  From this point you just keep uploading or modifying the files in "pages" as needed.
@@ -72,19 +69,18 @@ There is a bit of CSS included in the index.html file.  This can be modified or 
 
 By default AjaxCMS will load themes/default/theme.css.  You can modify or overwrite this file with your own CSS.  AjaxCMS will also try to load themes/default/background.js to start the background animation.
 You can delete the contents of this file if you would like to create your own background animations.  There is a little script at the top of "index.html" that loads these.  You can modify or remove this script 
-if you would like to do something different. If you would like to learn how to create these animations or would like to see source code and examples not included here
-I have found http://codepen.io to be a good source of inspiration.  
+if you would like to do something different. If you would like to learn how to create these animations using Canvas / SVG / WebGL / CSS or would like to see source code and examples not included here
+I have found http://codepen.io to be a good source of inspiration.  Feel free to use the "starter" theme to get started.
 
 Animations used to be done using flash or silverlight, but because of issues with it being insecure and no longer included on mobile devices these technologies are being discontinued.  They are being replaced 
 by HTML5 Canvas, SVG and WebGL, along with CSS animations.  These are cross-browser compatible technologies that can be animated with Javascript to provide similar capabilities to what Flash provides without the 
 need for an external plugins and with greater security.  Most of the animations that we are using utilize Canvas because it is the most likely to be supported by all modern browsers.  WebGL requires that the 
-user has some kind of 3D capability (which can vary widely) and is still maturing so we are avoiding it at the moment. 
+user has some kind of 3D capability (which can vary widely) and is still maturing so we are avoiding it at the moment.
 
 Currently AjaxCMS development is supported through the sales of themes.  At the moment we charge $50 for a single site license or $100 for multiple installs by a single individual or corporation.
 If you would like to include your animations in AjaxCMS for free or for with a cost please contact me at <brandon.hoult@softwyre.com>
 
 ## 4. Markdown / HTML / CSS.
-
 Unlike most CMS systems there is not a backend with a WYSIWYG editor.  Pages in AjaxCMS are just plain [Markdown](https://guides.github.com/features/mastering-markdown/) or [HTML](http://www.w3schools.com/html/default.asp).
 How the content is displayed (size, color, etc.) is controlled using standard [CSS](http://www.w3schools.com/css/default.asp).
 If you are just starting then I would suggest learning Markdown (It can be learned in a few minutes) and beginning with predefined CSS themes for Bootstrap like the the ones at [Bootswatch](https://bootswatch.com/).
@@ -92,7 +88,6 @@ HTML and CSS will give you full control over the look and content of your site b
 you can purchase if you prefer that format.
 
 ## 5. Editors.
-
 Because there is not an admin interface you will need to be able to create and edit files to upload to the pages folder.  This can be done any number of ways and is one of the main strenghts of AjaxCMS.  Basically, anything
 that can create or modify files on the server can be used as an editor.  Which you choose is up to you and how you prefer to work.  I will list a few options below.  Feel free to email me at <brandon.hoult@softwyre.com> if 
 you know of other options you would like included in the list.  These editors basically fall into four categories:

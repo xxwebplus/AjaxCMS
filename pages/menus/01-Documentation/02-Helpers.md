@@ -48,3 +48,15 @@ Note that attributes cannot be used with inserts.  Instead wrap the insert manua
 Example: `{{filelist     | ./pages/foldername }}`
 
 Will convert a folder and all it's subfolders into a vertical menu using the standard `<ul>`, `<li>` format.  Can be used to create vertical submenus.
+
+## Blog
+Example: `{{blog     | directory | start | stop }}`
+
+Will display the specified directory as a list of blog entries with content loaded via AJAX.  Start and stop specify the number of blogs to display.  The blog entries must be named as follows:
+YY-MM-DD-n-Blog_Title.md or YY-MM-DD-Blog_Title.md.  Where YY=Year, MM=Month, DD=Day, n=Number (optional).
+
+## Blog List
+Example: `{{bloglist     | directory | start | stop }}`
+
+Will display the specified directory as a list of blog entries showing only the title.  Start and stop specify the number of blogs to display.  The blog entries must be named as follows:
+YY-MM-DD-n-Blog_Title.md or YY-MM-DD-Blog_Title.md.  Where YY=Year, MM=Month, DD=Day, n=Number (optional).
