@@ -47,10 +47,9 @@ This has been the result of many months of work and I look forward to hearing an
 
 <div id="disqus_thread"></div>
 <script>
-// Disqus
 var disqus_config = function () {
-    this.page.url = window.location.href;  // Replace PAGE_URL with your page's canonical URL variable
-    this.page.identifier = ajaxcms_page_id; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    this.page.url = window.location.href;  
+    this.page.identifier = ajaxcms_page_id; 
 };
 
 (function() { // DON'T EDIT BELOW THIS LINE
