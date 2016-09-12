@@ -347,9 +347,19 @@ function process_page(sdata) {
 			return "<ul "+attributes_string+" class=\"filelist\">" + rootList.html() + "</ul>";
 		}
 		
-		// {{blog | directory}}
-		if (parts[0] == 'blog' && parts.length == 2) {
+		// {{blog | directory | start | stop }}
+		if (parts[0] == 'blog' && parts.length > 1) {
+			// Get all the blog pages
 			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort().reverse();
+			
+			// If start and stop are specified then limit blog pages
+			var start;
+			var stop;
+			if (parts[2] != undefined) {start = parseInt(parts[2])}
+			if (parts[3] != undefined) {stop = parseInt(parts[3])} else {stop = blog_list.length}
+			if (parts.length > 2) {blog_list = blog_list.slice(start,stop);}
+			
+			// Convert the blog list to a hash with name and date.
 			for (var i=0; i< blog_list.length; i++) {
 				var blog_name = blog_list[i].split("/").slice(-1)[0].replace(/\.html$|\.md$/gi,'').replace(/_/g," ");
 				var blog_date_parts = /(\d+)-(\d+)-(\d+)(-(\d+)-)?/g.exec(blog_name);
@@ -361,15 +371,17 @@ function process_page(sdata) {
 				blog_list[i] = {name: blog_name, date: blog_date, url: blog_list[i]}
 			}
 			
+			// Make a div for each blog entry
 			var output = "";
 			for (var i=0; i < blog_list.length; i++){
 				output += "<div class=\"blog_entry\" data-url=\""+blog_list[i].url+"\" onclick=\"loadPage('"+blog_list[i].url+"')\">"
 				output += "<h1>"+blog_list[i].name+"</h1><time>"+blog_list[i].date.toLocaleDateString()+"</time><div class='blog_content'></div></div>"
 			}
 			
-			return "<div "+attributes_string+" class=\"blog_list\">"+output+"</div>"+
+			// Output all the blog entries wrapped in a div and then use javascript to load the contgents of each.
+			return "<div "+attributes_string+" class=\"blog\">"+output+"</div>"+
 				"<script>\n"+
-					"$('.blog_list .blog_entry').each(function(){\n"+
+					"$('.blog .blog_entry').each(function(){\n"+
 						"if (/\\.md$/.test(this.dataset.url)){\n"+
 							"$(this).find('.blog_content').load(this.dataset.url, function(data){$(this).html(process_page(marked(data)))});\n"+
 						"} else {\n"+
@@ -377,6 +389,40 @@ function process_page(sdata) {
 						"}\n"+
 					"});\n" +
 				"</script>\n"
+		}
+		
+		// {{bloglist | directory | start | stop }}
+		if (parts[0] == 'bloglist' && parts.length > 1) {
+			// Get all the blog pages
+			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort().reverse();
+			
+			// If start and stop are specified then limit blog pages
+			var start;
+			var stop;
+			if (parts[2] != undefined) {start = parseInt(parts[2])}
+			if (parts[3] != undefined) {stop = parseInt(parts[3])} else {stop = blog_list.length}
+			if (parts.length > 2) {blog_list = blog_list.slice(start,stop);}
+			
+			// Convert the blog list to a hash with name and date.
+			for (var i=0; i< blog_list.length; i++) {
+				var blog_name = blog_list[i].split("/").slice(-1)[0].replace(/\.html$|\.md$/gi,'').replace(/_/g," ");
+				var blog_date_parts = /(\d+)-(\d+)-(\d+)(-(\d+)-)?/g.exec(blog_name);
+				var blog_date;
+				if (blog_date_parts != null) { 
+					blog_date = new Date(blog_date_parts.slice(1,4).join('/')) 
+					blog_name = blog_name.split('-').slice(-1)[0];
+				}
+				blog_list[i] = {name: blog_name, date: blog_date, url: blog_list[i]}
+			}
+			
+			// Make a li for each blog entry
+			var output = "";
+			for (var i=0; i < blog_list.length; i++){
+				output += "<li class=\"blog_entry\"><a href=\"#\" onclick=\"loadPage('"+blog_list[i].url+"')\">" + blog_list[i].name + "</a></li>"
+			}
+			
+			// Output all the blog entries wrapped in a div and then use javascript to load the contgents of each.
+			return "<ul "+attributes_string+" class=\"blog_list\">"+output+"</ul>"
 		}
 		
 		// If all else fails return the original tag.
@@ -542,7 +588,8 @@ function loadPage(url,save) {
 					}
 					
 					// Update the body id with the name of the page (for css)
-					$('body').attr("id",url.replace(/[\s\/\.]/g,'_'));
+					ajaxcms_page_id = url.replace(/[\s\/\.]/g,'_')
+					$('body').attr("id", ajaxcms_page_id);
 					
 				});			
 			});

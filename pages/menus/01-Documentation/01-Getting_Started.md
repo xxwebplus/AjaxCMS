@@ -110,6 +110,3 @@ you know of other options you would like included in the list.  These editors ba
 	* [Codiad](http://codiad.com/) - Full featured editor that runs in a browser and can be installed alongside AjaxCMS.
 
 I would NOT suggest using document editors such as Microsoft Word or Openoffice, even though they can export HTML they tend to include a lot of formatting code that conflicts with the sites CSS and can cause many issues.
-
-<br><br>
-

@@ -1,1 +1,2 @@
-{{blog|./pages/AjaxCMS_Blog}}
+{{blog|./pages/AjaxCMS_Blog|0|2}}
+
