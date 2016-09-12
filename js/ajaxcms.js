@@ -591,8 +591,8 @@ function loadPage(url,save) {
 					ajaxcms_page_id = url.replace(/[\s\/\.]/g,'_')
 					$('body').attr("id", ajaxcms_page_id);
 					
-					// "_trackEvent" is the pageview event, 
-					_gaq.push(['_trackPageview', url]);
+					//Google Analytics
+					ga('send', 'pageview', location.href)
 					
 				});			
 			});
