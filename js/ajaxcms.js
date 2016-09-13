@@ -293,7 +293,7 @@ function process_page(sdata) {
 				(image_parts.length > 1) ? slide_alt = image_parts[1] : slide_alt = "";
 				(image_parts.length > 2) ? slide_caption = image_parts[2] : slide_caption = "";
 				slides += 	"<div class=\"item "+ (ii==0 ? 'active' : '') +"\">" +
-							"<img src=\""+ imageMatch(slide_image) +"\" alt=\""+ slide_alt  +"\">" +
+							"<img src=\""+ imageMatch(slide_image) +"\" alt=\""+ slide_alt  +"\" style='height:100%; width:100%'>" +
 							"<div class=\"carousel-caption\">"+slide_caption+"</div></div>";
 			}
 			
