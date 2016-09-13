@@ -204,6 +204,12 @@ function pageMatch(s) {
 	return return_url;
 }
 
+// Remove Scripts from strings of html
+function removeScripts(text) {
+	return text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,"");
+}
+        
+
 // Do shortcut replacement in page html content.  (links and stuff)
 function process_page(sdata) {
 	var d; 
@@ -347,50 +353,6 @@ function process_page(sdata) {
 			return "<ul "+attributes_string+" class=\"filelist\">" + rootList.html() + "</ul>";
 		}
 		
-		// {{blog | directory | start | stop }}
-		if (parts[0] == 'blog' && parts.length > 1) {
-			// Get all the blog pages
-			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort().reverse();
-			
-			// If start and stop are specified then limit blog pages
-			var start;
-			var stop;
-			if (parts[2] != undefined) {start = parseInt(parts[2])}
-			if (parts[3] != undefined) {stop = parseInt(parts[3])} else {stop = blog_list.length}
-			if (parts.length > 2) {blog_list = blog_list.slice(start,stop);}
-			
-			// Convert the blog list to a hash with name and date.
-			for (var i=0; i< blog_list.length; i++) {
-				var blog_name = blog_list[i].split("/").slice(-1)[0].replace(/\.html$|\.md$/gi,'').replace(/_/g," ");
-				var blog_date_parts = /(\d+)-(\d+)-(\d+)(-(\d+)-)?/g.exec(blog_name);
-				var blog_date;
-				if (blog_date_parts != null) { 
-					blog_date = new Date(blog_date_parts.slice(1,4).join('/')) 
-					blog_name = blog_name.split('-').slice(-1)[0];
-				}
-				blog_list[i] = {name: blog_name, date: blog_date, url: blog_list[i]}
-			}
-			
-			// Make a div for each blog entry
-			var output = "";
-			for (var i=0; i < blog_list.length; i++){
-				output += "<div class=\"blog_entry\" data-url=\""+blog_list[i].url+"\" onclick=\"loadPage('"+blog_list[i].url+"')\">"
-				output += "<h1>"+blog_list[i].name+"</h1><time>"+blog_list[i].date.toLocaleDateString()+"</time><div class='blog_content'></div></div>"
-			}
-			
-			// Output all the blog entries wrapped in a div and then use javascript to load the contgents of each.
-			return "<div "+attributes_string+" class=\"blog\">"+output+"</div>"+
-				"<script>\n"+
-					"$('.blog .blog_entry').each(function(){\n"+
-						"if (/\\.md$/.test(this.dataset.url)){\n"+
-							"$(this).find('.blog_content').load(this.dataset.url, function(data){$(this).html(process_page(marked(data)))});\n"+
-						"} else {\n"+
-							"$(this).find('.blog_content').load(this.dataset.url, function(data){$(this).html(process_page(data))});\n"+
-						"}\n"+
-					"});\n" +
-				"</script>\n"
-		}
-		
 		// {{bloglist | directory | start | stop }}
 		if (parts[0] == 'bloglist' && parts.length > 1) {
 			// Get all the blog pages
@@ -432,44 +394,90 @@ function process_page(sdata) {
 	return d
 }
 
-// Define functions for load transitions.
-function loadPageBasic(data,url) {
-	$("main").html( data );
-}
-
-function loadPageSlide(data,url) {
-	$("#b").html( data )
-	in_transition = true;
+// Do shortcut replacement of helpers that themselves produce other helpers.
+function pre_process_page(sdata) {
+	var d; 
+	var size;
 	
-	if (menuIndex(url) > menuIndex(current_page)) {
-		$("#a").hide("slide", { direction: "left"}, 500);
-		$("#b").show("slide", { direction: "right", complete: function(){
-			in_transition = false;
-			current_page = url;
-			$("#a").html($('#b').html());
-			$("#a").show();
-			$("#b").hide();
-		}}, 500);
-	} else if (menuIndex(url) < menuIndex(current_page) && menuIndex(url) != -1) {
-		$("#a").hide("slide", { direction: "right"}, 500);
-		$("#b").show("slide", { direction: "left", complete: function(){
-			in_transition = false;
-			current_page = url;
-			$("#a").html($('#b').html());
-			$("#a").show();
-			$("#b").hide();
-		}}, 500);
+	// If a string is passed in then process the string.  Otherwise process global data variable.
+	if (sdata === undefined) {
+		d = data;
 	} else {
-		$("#a").hide("fade", { }, 500);
-		$("#b").show("fade", { complete: function(){
-			  in_transition = false;
-			  current_page = url;
-			  $("#a").html($('#b').html());
-			  $("#a").show();
-			  $("#b").hide();
-		}}, 500);
+		d = sdata;
 	}
-		  
+	
+	// Convert stuff in {{ }} (helpers)
+	d = d.replace(/{{.*}}/gi, function myFunction(x){
+		var original = x;
+		var pieces = x.replace(/{{/g,'').replace(/}}/g,'').split('|');
+		var parts = [];
+		var attributes = [];
+		var attribute_string = ""
+		
+		// separate parts and attributes
+		for (var i=0; i<pieces.length; i++) {
+			if (/=&gt;/.test(pieces[i])){
+				attributes.push(pieces[i]);
+			} else {
+				parts.push(pieces[i]);
+			}
+		}
+		
+		// Convert attributes to string attr => value becomes attr='value'
+		for (var i=0; i<attributes.length; i++){
+			var apieces = attributes[i].split('=&gt;');
+			attributes[i] = apieces[0].trim()+"=\""+apieces[1].trim()+"\"";
+		}
+		attributes_string = attributes.join(" ");
+
+        // Blank - Skip any helpers that contain five sequential spaces.  This is so we can document the helpers format without it being replaced.  HTML merges the spaces.
+        if (/\s\s\s\s\s/.test(x)) {
+        	return original;
+        }
+        
+        // Remove Blanks
+        for (i=0; i < parts.length; i++) {parts[i] = parts[i].trim().toLowerCase()}
+        
+		// {{blog | directory | start | stop }}
+		if (parts[0] == 'blog' && parts.length > 1) {
+			// Get all the blog pages
+			var blog_list = $.grep(just_pages, function(n,i){return n.toLowerCase().indexOf(parts[1].toLowerCase()) > -1 && /\.html$|\.md$/i.test(n) }).sort().reverse();
+			
+			// If start and stop are specified then limit blog pages
+			var start;
+			var stop;
+			if (parts[2] != undefined) {start = parseInt(parts[2])}
+			if (parts[3] != undefined) {stop = parseInt(parts[3])} else {stop = blog_list.length}
+			if (parts.length > 2) {blog_list = blog_list.slice(start,stop);}
+			
+			// Convert the blog list to a hash with name and date.
+			for (var i=0; i< blog_list.length; i++) {
+				var blog_name = blog_list[i].split("/").slice(-1)[0].replace(/\.html$|\.md$/gi,'').replace(/_/g," ");
+				var blog_date_parts = /(\d+)-(\d+)-(\d+)(-(\d+)-)?/g.exec(blog_name);
+				var blog_date;
+				if (blog_date_parts != null) { 
+					blog_date = new Date(blog_date_parts.slice(1,4).join('/')) 
+					blog_name = blog_name.split('-').slice(-1)[0];
+				}
+				blog_list[i] = {name: blog_name, date: blog_date, url: blog_list[i]}
+			}
+			
+			// Make a div for each blog entry
+			var output = "";
+			for (var i=0; i < blog_list.length; i++){
+				output += "<div class='blog_entry' data-url='"+blog_list[i].url+"' onclick=\"loadPage('"+blog_list[i].url+"')\">"
+				output += "<h1>"+blog_list[i].name+"</h1><time>"+blog_list[i].date.toLocaleDateString()+"</time><div class='blog_content'>\n{{insert | "+blog_list[i].url+" | false}}\n</div></div>"
+			}
+			
+			return "<div "+attributes_string+" class='blog'>\n"+output+"</div>"
+		}
+		
+		// If all else fails return the original tag.
+		return original
+		
+	});
+	
+	return d
 }
 
 function lastLayout(filename) {
@@ -482,7 +490,7 @@ function lastLayout(filename) {
 	return pieces.slice(0,-1).concat(["layout.html"]).join("/")
 }
 
-function loadInsert(fname,insert_location,callback) {
+function loadInsert(fname,insert_location,allow_scripts,callback) {
 	
 	console.log(fname);
 	$.get(fname,function(insert_contents){
@@ -490,13 +498,18 @@ function loadInsert(fname,insert_location,callback) {
 		$.get( layout_url )
 			.always(function( layout ) {
 				
+				// Run through markdown if the file ends in .md
+				if (/\.md$/.test(fname)){ insert_contents = marked(insert_contents);	}
+				
 				// If there is a layout then insert the data into the layout
 				if (typeof(layout) != "object") {
 					insert_contents = layout.replace(/{{content}}/gi, function myFunction(x){
-						if (/\.md/.test(fname)){ insert_contents = marked(insert_contents);	}
 						return insert_contents;
 					});
 				}
+				
+				// Strip the scripts if specified
+				if (!allow_scripts) {insert_contents = removeScripts(insert_contents);}
 
 				// Insert the contents of each file into data -- invalidate insertion patterns in content of replacement file until async is done.
 				data = data.replace(insert_location,insert_contents.replace(/{{/,'@@@@@').replace(/}}/,'#####'))
@@ -510,15 +523,19 @@ function loadInsert(fname,insert_location,callback) {
 function processInserts(callback) {
 	
 	var insert_list = data.match(/{{\s{0,4}insert.*?}}/gi); // skip if more than 5 spaces at the beginning for documentation purposes.
-
-	// If ther are no callbacks then done.
+	
+	// If there are no callbacks then done.
 	if (insert_list == null) {callback(); return}
 	var rcount = insert_list.length;
 
 	// Load all the files in the insert list
 	for (var i=0; i < insert_list.length; i++) {
 		var fname =  pageMatch(insert_list[i].replace(/[{}\s]/g,'').split("|")[1]);
-		loadInsert(fname,insert_list[i],function(){
+		
+		var scripts = insert_list[i].replace(/[{}\s]/g,'').split("|")[2];
+		if (scripts === undefined || scripts.trim() == 'true') {var allow_scripts = true}
+		
+		loadInsert(fname, insert_list[i], allow_scripts, function(){
 			rcount--;
 			
 			// Run Callback if it exists
@@ -539,6 +556,50 @@ function processInserts(callback) {
 	}
 }
 
+// Define functions for load transitions.
+function loadPageBasic(data,url) {
+	$("main").html( data );
+}
+
+function loadPageSlide(data,url) {
+	
+	in_transition = true;
+	
+	if (menuIndex(url) > menuIndex(current_page)) {
+		$("#b").html( data )
+		$("#a").hide("slide", { direction: "left"}, 500);
+		$("#b").show("slide", { direction: "right", complete: function(){
+			in_transition = false;
+			current_page = url;
+			$("#a").html($('#b').html());
+			$("#a").show();
+			$("#b").hide();
+		}}, 500);
+	} else if (menuIndex(url) < menuIndex(current_page) && menuIndex(url) != -1) {
+		$("#b").html( data )
+		$("#a").hide("slide", { direction: "right"}, 500);
+		$("#b").show("slide", { direction: "left", complete: function(){
+			in_transition = false;
+			current_page = url;
+			$("#a").html($('#b').html());
+			$("#a").show();
+			$("#b").hide();
+		}}, 500);
+	} else {
+		$("#a").hide("fade", { }, 500);
+		$("#b").show("fade", { complete: function(){
+			  $("#b").html( data )
+			  in_transition = false;
+			  current_page = url;
+			  $("#a").html($('#b').html());
+			  $("#a").show();
+			  $("#b").hide();
+		}}, 500);
+	}
+		  
+}
+
+
 // Set load_transition variable at top to set transition type for page loads.
 function loadPage(url,save) {
 	highlightMenu(url);
@@ -558,16 +619,15 @@ function loadPage(url,save) {
 					data = d;
 				}
 				
+				// Process any helpers that themselves produce other helpers (like the blog)
+				data = pre_process_page();
+				// Filter content through markdown if the file extension is .md
+				if (/\.md$/.test(url)){ data = marked(data);}
+				// Process any inserts recursively.
 				processInserts( function(){
-		
-					// Filter content through markdown if the file extension is .md
-					if (/\.md/.test(url)){ 
-						data = marked(data); 
-					}
-					
-					// Process the helpers in the resulting page/layout
+					// --- We are now back from the insert processing. ---
 					data = process_page();
-					
+
 					// Render the appropriate page transition effect.
 					switch(load_transition) {
 						case 'basic':
@@ -646,11 +706,8 @@ function makemenu() {
 	});
 }
 
-// Back button clicked
-$(window).on("popstate", function(e) {
-	page = e.originalEvent.state.page
-    loadPage('./' + /(.*)\?page\=(.*)/.exec(page)[2],false); // the part after the ?page=
-});
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 // When the page is loaded.
@@ -679,26 +736,32 @@ $( document ).ready(function() {
 		}
 	});
 	
+	// Back button clicked
+	$(window).on("popstate", function(e) {
+		page = e.originalEvent.state.page
+	    loadPage('./' + /(.*)\?page\=(.*)/.exec(page)[2],false); // the part after the ?page=
+	});
+	
 	// Detect keypress
 	$(function(){
     	$('html').keydown(function(e){
         
-        // left key
-        if (e.keyCode == 39 && !in_transition) {
-        	if (mpIndex(current_page) < menu_pages.length){
-				loadPage(menu_pages[mpIndex(current_page)+1],true);
-        	}
-		}
-        
-        // right key
-        if (e.keyCode == 37 && !in_transition) {
-        	if (mpIndex(current_page) > 0){
-				loadPage(menu_pages[mpIndex(current_page)-1],true);
-        	}
-		}
-    });
+	        // left key
+	        if (e.keyCode == 39 && !in_transition) {
+	        	if (mpIndex(current_page) < menu_pages.length){
+					loadPage(menu_pages[mpIndex(current_page)+1],true);
+	        	}
+			}
+	        
+	        // right key
+	        if (e.keyCode == 37 && !in_transition) {
+	        	if (mpIndex(current_page) > 0){
+					loadPage(menu_pages[mpIndex(current_page)-1],true);
+	        	}
+			}
+	    });
     
-});
+	});
 	
 	// Fix background glitch on mobile devices when address bar hides / unhides.
 	$('#background').height(jQuery(window).height() + 120);
