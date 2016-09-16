@@ -29,7 +29,7 @@ var images_count = 0;
 var in_transition = false;
 
 var base_url = window.location.href.replace(/\?.*/,'');
-var params = window.location.href.replace(/.*\?/,'').split('&');
+
 var current_page;
 var just_pages;
 var menu_pages;
@@ -44,10 +44,13 @@ function scaleMain(selector) {
 
 // return url parameter value
 function param(key) {
+	var params = window.location.href.replace(/.*\?/,'').split('&');
+	
 	for (i=0; i<params.length; i++) {
 		x = params[i].split("=");
 		if (x[0] == key) {return x[1]}
 	}
+	console.log(params);
 }
 
 // Pages return just the html files (not directories)
@@ -117,11 +120,15 @@ function load_pages(url) {
 			
 			// Load the page in the params if specified, first menu page otherwise.
 			p = param('page');
+			console.log("p=" + p);
 			if (p) {
 				loadPage('./'+p, true);
 				current_page = p;
 			} else {
 				current_page = menu_pages[0];
+				// Store the URL of the current page in the history *** for some reason firefox needs this or it will break the splash animation.
+				var new_url = base_url+'?page='+current_page.replace(/^\.\//,'');
+				window.history.pushState({page: new_url},'test',new_url);
 				loadPage(current_page, true); // Load the first page (home page) on init.
 			}
 		}
