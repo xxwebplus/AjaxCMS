@@ -10,6 +10,7 @@
 			var default_background = "default";
 			var ajaxcms_google_analytics = 'UA-84079705-1';
 			var ajaxcms_themes_menu = true;
+			var ajaxcms_splash_time = 5000;
 		</script>
 		
 		<!-- Jquery -->
@@ -30,9 +31,13 @@
 		<script src="js/victor.js"></script>
 		<script src="js/canvasstuff.js"></script>
 		<script src="js/jquery-mobile-swipe.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/segment-js/1.0.8/segment.js"></script>
 		
 		<!-- CMS Javascript -->
 		<script src="js/ajaxcms.js"></script>
+		
+		<!-- fonts.google.com -->
+		<link href="https://fonts.googleapis.com/css?family=Montserrat+Alternates:700" rel="stylesheet">
 		
 		<!--<script src="themes/bubbles/background.js"></script>-->
 		<!--<link href="themes/bubbles/theme.css" type="text/css" rel='stylesheet'>-->
@@ -71,6 +76,8 @@
 			
 			nav.navbar {
 				margin-bottom:0px;
+				z-index:1;
+				border-radius:0px 0px 10px 10px;
 			}
 			
 			.container {
@@ -82,6 +89,7 @@
 			
 			#a, #b {
 				position:absolute; 
+				top: -20px;
 				width:100%;
 				z-index:0;
 				background-color:rgba(200,200,255,0.9);
@@ -89,6 +97,10 @@
 				border-radius:0px 0px 8px 8px;
 				color:black;
 				margin-bottom:50px;
+			}
+			
+			#main {
+				
 			}
 			
 			#main>div {
@@ -138,7 +150,6 @@
 				position:fixed;
 				left:0px;
 				bottom:0px;
-				height:30px;
 				width:100%;
 				background:white;
 				color:black;
@@ -172,7 +183,7 @@
 	<body>
 		<canvas id="background"></canvas>
 		<div id="background-div"></div>
-		<div class="container">
+		<div class="container" style="display:none;">
 			<header>
 			</header>
 			
@@ -186,7 +197,7 @@
 				      <span class="icon-bar"></span>
 				      <span class="icon-bar"></span>
 				    </button>
-				    <a class="navbar-brand" href="#">AjaxCMS</a>
+				    <a class="navbar-brand" href="#" style="width:200px;"><img src='ajaxcms.svg' style="position:relative; top: -20px; z-index:2; width:100%;"></a>
 				  </div>
 				  <div id="navbar" class="navbar-collapse collapse">
 				    <ul id='menu' class="nav navbar-nav">

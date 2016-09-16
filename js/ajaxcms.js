@@ -100,6 +100,21 @@ function load_pages(url) {
 			just_pages = findPages().sort();
 			menu_pages = $.grep(just_pages, function(n,i){return /\/menus\/.+/.test(n)});
 
+			// if there is a splash page then display
+			if (pages.indexOf("./pages/splash.html")) {
+				$.get("./pages/splash.html",function(data){
+					$(".container").before("<div id='splash' style='width:100%; position:absolute;'>"+data+"</div>");
+				});
+				
+				setTimeout(function(){
+					$('#splash').fadeOut(2000);
+					$('.container').fadeIn(1000);
+				},ajaxcms_splash_time);	
+				
+			} else {
+				$('.container').fadeIn(1000)
+			}
+			
 			// Load the page in the params if specified, first menu page otherwise.
 			p = param('page');
 			if (p) {
@@ -714,8 +729,9 @@ function makemenu() {
 $( document ).ready(function() {
 	
 	// Get the directory listings.
-	load_pages('./pages');
 	load_images('./images');
+	load_pages('./pages');
+	
 	if (ajaxcms_themes_menu) {load_themes('./themes');}
 	
     // Home on Brand Click
