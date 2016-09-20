@@ -104,7 +104,7 @@ function load_pages(url) {
 			menu_pages = $.grep(just_pages, function(n,i){return /\/menus\/.+/.test(n)});
 
 			// if there is a splash page then display
-			if (pages.indexOf("./pages/splash.html")) {
+			if (pages.indexOf("./pages/splash.html") && !param('page')) {
 				$.get("./pages/splash.html",function(data){
 					$(".container").before("<div id='splash' style='width:100%; position:absolute;'>"+data+"</div>");
 				});
