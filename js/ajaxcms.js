@@ -298,7 +298,7 @@ function process_page(sdata) {
 		if (parts[0].includes('carousel') && parts.length > 2) {
 			var idn = Math.floor(rand(9999999999));
 			var carousel_images = parts.slice(1);
-			var carousel_speed = 5000
+			var carousel_speed = 5000;
 			if (parts[0].split(':').length == 2) {carousel_speed = parseInt(parts[0].split(':')[1])}
 			
 			// Build the repeating parts of the carousel

@@ -1,4 +1,4 @@
-<svg id="svg2" viewBox="0 0 100 40" style="width:100%; max-width: 1000px; display:block; margin-right:auto; margin-left:auto; padding:0px 50px;" >
+<svg id="svg2" viewBox="0 0 100 40" style="width:100%; max-width: 1000px; display:block; margin-right:auto; margin-left:auto; padding:0px 50px; margin-bottom:-3%" >
   <defs>
     <filter id="f1" x="-10%" y="-10%" width="200%" height="200%">
       <feOffset result="offOut" in="SourceAlpha" dx="2" dy="2" />
@@ -11,7 +11,7 @@
   </defs>
 
  <g id="layer1" transform="translate(-167.99 -497.08)">
-  <g id="text4210" transform="matrix(.97573 0 0 1.0249 -40.136 -11.636)" stroke-width="0.5" stroke="#AAF" fill="rgba(0,0,0,0)" filter="url(#f1)">
+  <g id="text4210" transform="matrix(.97573 0 0 1.0249 -40.136 -11.636)" stroke-width="0.5" stroke="#AAF" fill="rgba(0,0,0,0)" >
 
    <path id="ajaxcms_a" d="m213.98 523.09v-11.217q0-4.3576 1.7048-6.6066 1.7048-2.2772 4.7476-2.2772t4.7261 2.249q1.7048 2.2209 1.7048 6.466v11.386h-3.3881v-4.6106h-6.1288v4.6106h-3.3665zm3.3665-11.358v2.8676h6.1288v-2.727q0-2.3615-0.82004-3.6547-0.82006-1.3213-2.2659-1.3213-1.4243 0-2.2443 1.2651-0.79847 1.237-0.79847 3.5704z" />
 
@@ -30,12 +30,12 @@
   </g>
  </g>
 </svg>
-<div id='words' style="position:relative; margin-top:0px; text-align:center; max-width: 1000px; display:block; margin-right:auto; margin-left:auto;">
-	<span id='words1' style="font-size:4vw; opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> SIMPLE </span>
-	<span id='slash1' style="font-size:4vw; opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> / </span>
-	<span id='words2' style="font-size:4vw; opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> FAST </span>
-	<span id='slash2' style="font-size:4vw; opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> / </span>
-	<span id='words3' style="font-size:4vw; opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> SECURE </span>
+<div id='words' style="position:relative; text-align:center; width:100%; display:block; margin-right:auto; margin-left:auto; font-size:4vw;">
+	<span id='words1' style="opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> SIMPLE </span>
+	<span id='slash1' style="opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> / </span>
+	<span id='words2' style="opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> FAST </span>
+	<span id='slash2' style="opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> / </span>
+	<span id='words3' style="opacity:0; font-family: 'Montserrat Alternates', sans-serif;"> SECURE </span>
 </div>
 <script>
   ajax_cms_splash_parts = ['a','j','a2','c','m','s','x'];
@@ -44,13 +44,20 @@
 		seg[i] = document.getElementById("ajaxcms_"+ajax_cms_splash_parts[i]);
 		seg[i] = new Segment(seg[i]);
 		seg[i].draw("0", "0%", 0);
-		seg[i].draw("0", "105%", 1, {delay: 0.3 * i, callback: function(){$(this.path).css({fill: "rgba(250,250,250,1)", transition: "1.0s"});}});
+		seg[i].draw("0", "105%", 0.5, {delay: 0.2 * i, callback: function(){$(this.path).css({fill: "rgba(250,250,250,1)", transition: "0.6s"});}});
 	}
 	
-	setTimeout(function(){$('#words1').css({opacity:1, transition:"2.0s"});},1500);
-	setTimeout(function(){$('#slash1').css({opacity:1, transition:"2.0s"});},1750);
-	setTimeout(function(){$('#words2').css({opacity:1, transition:"2.0s"});},2000);
-	setTimeout(function(){$('#slash2').css({opacity:1, transition:"2.0s"});},2250);
-	setTimeout(function(){$('#words3').css({opacity:1, transition:"2.0s"});},2500);
+	setTimeout(function(){$('#words1').css({opacity:1, transition:"1.0s"});},500);
+	setTimeout(function(){$('#slash1').css({opacity:1, transition:"1.0s"});},750);
+	setTimeout(function(){$('#words2').css({opacity:1, transition:"1.0s"});},1000);
+	setTimeout(function(){$('#slash2').css({opacity:1, transition:"1.0s"});},1250);
+	setTimeout(function(){$('#words3').css({opacity:1, transition:"1.0s"});},1500);
+	
+	// Set the max font size for the "simple / fast / secure" tag
+	if (window.innerWidth > 1000) {
+		$('#words span').each(function(){
+			$(this).css('font-size', '60px');
+		});
+	}
 </script>
 
